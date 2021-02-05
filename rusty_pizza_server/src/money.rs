@@ -1,15 +1,11 @@
 #[derive(Debug, PartialEq, Eq, Hash)]
 struct Money {
-    before_decimal_point: u32,
-    after_decimal_point: u8,
+    cents: u32,
 }
 
 impl Money {
-    fn new(before_decimal_point: u32, after_decimal_point: u8) -> Money {
-        Money {
-            before_decimal_point: before_decimal_point,
-            after_decimal_point: after_decimal_point,
-        }
+    fn new(euros: u32, cents: u8) -> Money {
+        Money { cents: euros * 100 + cents as u32 }
     }
 }
 
@@ -24,10 +20,7 @@ mod tests {
         let money = Money::new(5, 50);
 
         // Then:
-        assert_eq!(money, Money {
-            before_decimal_point: 5,
-            after_decimal_point: 50,
-        })
+        assert_eq!(money, Money { cents: 550 })
     }
 
     #[test]
@@ -36,9 +29,6 @@ mod tests {
         let money = Money::new(7, 20);
 
         // Then:
-        assert_eq!(money, Money {
-            before_decimal_point: 7,
-            after_decimal_point: 20,
-        })
+        assert_eq!(money, Money { cents: 720 })
     }
 }
