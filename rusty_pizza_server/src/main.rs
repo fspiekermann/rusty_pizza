@@ -3,16 +3,14 @@ use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 
-// TODO: calculate change money
-// TODO: Implement custom money type
 #[derive(Debug, PartialEq)]
 struct Meal {
     /// Number of the meal in the menu
     meal_id: String,
     /// Size of the pizza or noodle type etc.
     variety: String,
-    price: f64,
     specials: HashSet<String>,
+    price: f64,
 }
 
 impl Meal {
@@ -36,7 +34,6 @@ impl Hash for Meal {
     }
 }
 
-// TODO: Remove this in once custom money type was introduced
 impl Eq for Meal {}
 
 #[derive(Debug, PartialEq)]
