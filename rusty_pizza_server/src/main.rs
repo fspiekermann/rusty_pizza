@@ -59,13 +59,7 @@ impl Order {
     }
 
     fn add_user(&mut self, user: Rc<User>) {
-        let meals = Meals {
-            meals: Vec::new(),
-            owner: user.clone(),
-            ready: false,
-            paid: 0.0,
-            tip: 0.0,
-        };
+        let meals = Meals::new(user.clone());
         self.meals.insert(user, meals);
     }
 }
