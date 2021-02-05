@@ -1,3 +1,5 @@
+use std::ops::Add;
+
 #[derive(Debug, PartialEq, Eq, Hash)]
 struct Money {
     cents: u32,
@@ -9,6 +11,13 @@ impl Money {
     }
 }
 
+impl Add for Money {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        Self { cents: self.cents + other.cents }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -30,5 +39,29 @@ mod tests {
 
         // Then:
         assert_eq!(money, Money { cents: 720 })
+    }
+
+    #[test]
+    fn money_can_be_added() {
+        let money1 = Money::new(7, 20);
+        let money2 = Money::new(5, 50);
+
+        // When:
+        let result = money1 + money2;
+
+        // Then:
+        assert_eq!(result, Money { cents: 1270 })
+    }
+
+    #[test]
+    fn money_can_be_added_with_different_values() {
+        let money1 = Money::new(7, 20);
+        let money2 = Money::new(5, 55);
+
+        // When:
+        let result = money1 + money2;
+
+        // Then:
+        assert_eq!(result, Money { cents: 1275 })
     }
 }
