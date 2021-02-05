@@ -1,8 +1,10 @@
 use std::rc::Rc;
 use std::collections::HashSet;
 use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 
 // TODO: calculate change money
+// TODO: Implement custom money type
 #[derive(Debug, PartialEq)]
 struct Meal {
     /// Number of the meal in the menu
@@ -23,9 +25,24 @@ impl Meal {
     }
 }
 
+impl Hash for Meal {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.meal_id.hash(state);
+        self.variety.hash(state);
+        self.price.to_string().hash(state);
+        for special in &self.specials {
+            special.hash(state);
+        }
+    }
+}
+
+// TODO: Remove this in once custom money type was introduced
+impl Eq for Meal { }
+
 #[derive(Debug, PartialEq)]
 struct Meals {
-    meals: Vec<Meal>,
+    /// Meal and quantity
+    meals: HashMap<Meal, i32>,
     owner: Rc<User>,
     /// Whether the meals selection has been completed
     ready: bool,
@@ -36,12 +53,16 @@ struct Meals {
 impl Meals {
     fn new(user: Rc<User>) -> Meals {
         Meals {
-            meals: Vec::new(),
+            meals: HashMap::new(),
             owner: user,
             ready: false,
             paid: 0.0,
             tip: 0.0,
         }
+    }
+
+    fn add_meal(&mut self, meal: Meal) {
+        self.meals.insert(meal, 1);
     }
 }
 
@@ -108,7 +129,7 @@ mod tests {
         let meals = Meals::new(user.clone());
         //Then
         assert_eq!(meals, Meals {
-            meals: vec![],
+            meals: HashMap::new(),
             owner: user,
             ready: false,
             paid: 0.0,
@@ -130,7 +151,7 @@ mod tests {
         //Then
         assert_eq!(order.meals.len(), 1);
         assert_eq!(order.meals[&user], Meals {
-            meals: vec![],
+            meals: HashMap::new(),
             owner: user,
             ready: false,
             paid: 0.0,
@@ -138,6 +159,39 @@ mod tests {
         });
         assert_eq!(order.status, OrderStatus::Open);
         assert_eq!(order.manager, manager);
+    }
+
+    #[test]
+    fn meal_can_be_added_to_meals() {
+        //Given
+        let user = Rc::new(User { name: String::from("Peter") });
+        let mut meals = Meals::new(user.clone());
+
+        let meal = Meal {
+            meal_id: String::from("03"),
+            variety: String::from("groß"),
+            price: 5.50,
+            specials: HashSet::new(),
+        };
+
+        //When
+        meals.add_meal(meal);
+
+        //Then
+        let mut expected_meals = HashMap::new();
+        expected_meals.insert(Meal {
+            meal_id: String::from("03"),
+            variety: String::from("groß"),
+            price: 5.50,
+            specials: HashSet::new(),
+        }, 1);
+        assert_eq!(meals, Meals {
+            meals: expected_meals,
+            owner: user,
+            ready: false,
+            paid: 0.0,
+            tip: 0.0,
+        });
     }
 
     #[test]
