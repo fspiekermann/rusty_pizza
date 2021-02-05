@@ -86,8 +86,7 @@ mod tests {
     #[test]
     fn order_can_be_created() {
         //Given
-        let name = String::from("Peter");
-        let user = Rc::new(User { name: name });
+        let user = Rc::new(User { name: String::from("Peter") });
         //When
         let order = Order::new(user.clone());
         //Then
@@ -99,8 +98,7 @@ mod tests {
     #[test]
     fn meals_can_be_created() {
         //Given
-        let name = String::from("Peter");
-        let user = Rc::new(User { name: name });
+        let user = Rc::new(User { name: String::from("Peter") });
         //When
         let meals = Meals::new(user.clone());
         //Then
@@ -116,8 +114,7 @@ mod tests {
     #[test]
     fn user_can_be_added_to_order() {
         //Given
-        let name = String::from("Peter");
-        let manager = Rc::new(User { name: name });
+        let manager = Rc::new(User { name: String::from("Peter") });
         let mut order = Order::new(manager.clone());
         
         let user = Rc::new(User { name: String::from("Karl") });
