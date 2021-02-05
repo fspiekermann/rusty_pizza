@@ -16,6 +16,10 @@ impl Meal {
     fn add_special(&mut self, special: String) {
         self.specials.push(special);
     }
+
+    fn remove_special(&mut self, special: String) {
+        self.specials.retain(|x| x != &special);
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -156,6 +160,30 @@ mod tests {
             variety: String::from("groß"),
             price: 5.50,
             specials: vec![String::from("Käserand")],
+        });
+    }
+
+    #[test]
+    fn special_can_be_removed_from_meal() {
+        //Given
+        let mut meal = Meal {
+            meal_id: String::from("03"),
+            variety: String::from("groß"),
+            price: 5.50,
+            specials: vec![String::from("Käserand")],
+        };
+
+        let special = String::from("Käserand");
+
+        //When
+        meal.remove_special(special);
+
+        //Then
+        assert_eq!(meal, Meal {
+            meal_id: String::from("03"),
+            variety: String::from("groß"),
+            price: 5.50,
+            specials: Vec::new(),
         });
     }
 }
