@@ -3,6 +3,8 @@ use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 
+mod money;
+
 #[derive(Debug, PartialEq)]
 struct Meal {
     /// Number of the meal in the menu
