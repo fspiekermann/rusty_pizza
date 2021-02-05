@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use std::collections::HashSet;
 use std::collections::HashMap;
 
 // TODO: calculate change money
@@ -9,16 +10,16 @@ struct Meal {
     /// Size of the pizza or noodle type etc.
     variety: String,
     price: f64,
-    specials: Vec<String>,
+    specials: HashSet<String>,
 }
 
 impl Meal {
     fn add_special(&mut self, special: String) {
-        self.specials.push(special);
+        self.specials.insert(special);
     }
 
-    fn remove_special(&mut self, special: String) {
-        self.specials.retain(|x| x != &special);
+    fn remove_special(&mut self, special: &String) {
+        self.specials.remove(special);
     }
 }
 
@@ -146,7 +147,7 @@ mod tests {
             meal_id: String::from("03"),
             variety: String::from("groß"),
             price: 5.50,
-            specials: Vec::new(),
+            specials: HashSet::new(),
         };
 
         let special = String::from("Käserand");
@@ -155,35 +156,39 @@ mod tests {
         meal.add_special(special);
 
         //Then
+        let mut expected_specials = HashSet::new();
+        expected_specials.insert(String::from("Käserand"));
         assert_eq!(meal, Meal {
             meal_id: String::from("03"),
             variety: String::from("groß"),
             price: 5.50,
-            specials: vec![String::from("Käserand")],
+            specials: expected_specials,
         });
     }
 
     #[test]
     fn special_can_be_removed_from_meal() {
         //Given
+        let mut specials = HashSet::new();
+        specials.insert(String::from("Käserand"));
         let mut meal = Meal {
             meal_id: String::from("03"),
             variety: String::from("groß"),
             price: 5.50,
-            specials: vec![String::from("Käserand")],
+            specials,
         };
 
         let special = String::from("Käserand");
 
         //When
-        meal.remove_special(special);
+        meal.remove_special(&special);
 
         //Then
         assert_eq!(meal, Meal {
             meal_id: String::from("03"),
             variety: String::from("groß"),
             price: 5.50,
-            specials: Vec::new(),
+            specials: HashSet::new(),
         });
     }
 }
