@@ -11,37 +11,38 @@ struct Meal {
     price: f64,
     paid: f64,
     tip: f64,
-    specials: Vec<String>
+    specials: Vec<String>,
 }
 
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 enum OrderStatus {
     Open,
     Ordering,
     Ordered(String),
-    Delivered
+    Delivered,
 }
 
 #[derive(Debug)]
 struct Order {
     meals: Vec<Meal>,
     status: OrderStatus,
-    manager: Rc<User>
+    manager: Rc<User>,
 }
 
 impl Order {
-    fn new(manager: Rc<User>) -> Order{
-        return Order { meals: Vec::new(), status: OrderStatus::Open, manager: manager};
+    fn new(manager: Rc<User>) -> Order {
+        return Order {
+            meals: Vec::new(),
+            status: OrderStatus::Open,
+            manager: manager,
+        };
     }
 }
 
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 struct User {
-    name: String
+    name: String,
 }
-
 
 fn main() {
     println!("Hello, world!");
