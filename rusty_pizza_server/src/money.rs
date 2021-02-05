@@ -100,4 +100,15 @@ mod tests {
         // Then:
         assert_eq!(result, Money { cents: 165 })
     }
+
+    #[test]
+    #[should_panic]
+    fn creating_negative_amount_of_money_through_subtraction_panics() {
+        // Given:
+        let money1 = Money::new(7, 20);
+        let money2 = Money::new(7, 40);
+
+        // When:
+        let _ = money1 - money2;
+    }
 }
