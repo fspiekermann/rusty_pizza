@@ -1,5 +1,5 @@
-use std::fmt::{self, Formatter, Display};
-use std::ops::{Add, Sub, Mul};
+use std::fmt::{self, Display, Formatter};
+use std::ops::{Add, Mul, Sub};
 
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 struct Money {
@@ -8,7 +8,9 @@ struct Money {
 
 impl Money {
     fn new(euros: u32, cents: u8) -> Money {
-        Money { cents: euros * 100 + cents as u32 }
+        Money {
+            cents: euros * 100 + cents as u32,
+        }
     }
 }
 
@@ -16,7 +18,9 @@ impl Add for Money {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
-        Self { cents: self.cents + other.cents }
+        Self {
+            cents: self.cents + other.cents,
+        }
     }
 }
 
@@ -24,7 +28,9 @@ impl Sub for Money {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self {
-        Self { cents: self.cents - other.cents }
+        Self {
+            cents: self.cents - other.cents,
+        }
     }
 }
 
@@ -32,7 +38,9 @@ impl Mul<u8> for Money {
     type Output = Self;
 
     fn mul(self, other: u8) -> Self {
-        Self { cents: self.cents * other as u32 }
+        Self {
+            cents: self.cents * other as u32,
+        }
     }
 }
 
@@ -48,7 +56,9 @@ impl Mul<u16> for Money {
     type Output = Self;
 
     fn mul(self, other: u16) -> Self {
-        Self { cents: self.cents * other as u32 }
+        Self {
+            cents: self.cents * other as u32,
+        }
     }
 }
 
@@ -64,7 +74,9 @@ impl Mul<u32> for Money {
     type Output = Self;
 
     fn mul(self, other: u32) -> Self {
-        Self { cents: self.cents * other }
+        Self {
+            cents: self.cents * other,
+        }
     }
 }
 
@@ -279,8 +291,7 @@ mod tests {
 
         // When:
         let mut output = String::new();
-        write!(&mut output, "{}", money)
-            .expect("Error formatting money");
+        write!(&mut output, "{}", money).expect("Error formatting money");
 
         // Then:
         assert_eq!(output, "2,99€");
