@@ -1,6 +1,6 @@
 use std::ops::{Add, Sub, Mul};
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 struct Money {
     cents: u32,
 }
@@ -246,5 +246,19 @@ mod tests {
 
         // Then:
         assert_eq!(result, Money { cents: 600 })
+    }
+
+    #[test]
+    fn money_is_copy() {
+        // Given:
+        let money = Money::new(2, 0);
+
+        // When:
+        let result1 = 3u32 * money;
+        let result2 = money + Money::new(1, 0);
+
+        // Then:
+        assert_eq!(result1, Money { cents: 600 });
+        assert_eq!(result2, Money { cents: 300 });
     }
 }
