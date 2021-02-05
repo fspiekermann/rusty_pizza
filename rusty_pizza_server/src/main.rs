@@ -1,18 +1,17 @@
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::hash::{Hash, Hasher};
+use std::collections::{HashMap, BTreeSet};
+use std::hash::Hash;
 use std::rc::Rc;
 
 mod money;
 use money::Money;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 struct Meal {
     /// Number of the meal in the menu
     meal_id: String,
     /// Size of the pizza or noodle type etc.
     variety: String,
-    specials: HashSet<String>,
+    specials: BTreeSet<String>,
     price: Money,
 }
 
@@ -25,19 +24,6 @@ impl Meal {
         self.specials.remove(special);
     }
 }
-
-impl Hash for Meal {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.meal_id.hash(state);
-        self.variety.hash(state);
-        self.price.to_string().hash(state);
-        for special in &self.specials {
-            special.hash(state);
-        }
-    }
-}
-
-impl Eq for Meal {}
 
 #[derive(Debug, PartialEq)]
 struct Meals {
@@ -187,7 +173,7 @@ mod tests {
             meal_id: String::from("03"),
             variety: String::from("groß"),
             price: Money::new(5, 50),
-            specials: HashSet::new(),
+            specials: BTreeSet::new(),
         };
 
         //When
@@ -200,7 +186,7 @@ mod tests {
                 meal_id: String::from("03"),
                 variety: String::from("groß"),
                 price: Money::new(5, 50),
-                specials: HashSet::new(),
+                specials: BTreeSet::new(),
             },
             1,
         );
@@ -223,7 +209,7 @@ mod tests {
             meal_id: String::from("03"),
             variety: String::from("groß"),
             price: Money::new(5, 50),
-            specials: HashSet::new(),
+            specials: BTreeSet::new(),
         };
 
         let special = String::from("Käserand");
@@ -232,7 +218,7 @@ mod tests {
         meal.add_special(special);
 
         //Then
-        let mut expected_specials = HashSet::new();
+        let mut expected_specials = BTreeSet::new();
         expected_specials.insert(String::from("Käserand"));
         assert_eq!(
             meal,
@@ -248,7 +234,7 @@ mod tests {
     #[test]
     fn special_can_be_removed_from_meal() {
         //Given
-        let mut specials = HashSet::new();
+        let mut specials = BTreeSet::new();
         specials.insert(String::from("Käserand"));
         let mut meal = Meal {
             meal_id: String::from("03"),
@@ -269,7 +255,7 @@ mod tests {
                 meal_id: String::from("03"),
                 variety: String::from("groß"),
                 price: Money::new(5, 50),
-                specials: HashSet::new(),
+                specials: BTreeSet::new(),
             }
         );
     }
