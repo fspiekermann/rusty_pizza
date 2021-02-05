@@ -31,11 +31,11 @@ struct Order {
 
 impl Order {
     fn new(manager: Rc<User>) -> Order {
-        return Order {
+        Order {
             meals: Vec::new(),
             status: OrderStatus::Open,
-            manager: manager,
-        };
+            manager,
+        }
     }
 }
 
