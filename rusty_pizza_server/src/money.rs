@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::ops::{Add, Sub};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 struct Money {
@@ -16,6 +16,14 @@ impl Add for Money {
 
     fn add(self, other: Self) -> Self {
         Self { cents: self.cents + other.cents }
+    }
+}
+
+impl Sub for Money {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self {
+        Self { cents: self.cents - other.cents }
     }
 }
 
@@ -43,6 +51,7 @@ mod tests {
 
     #[test]
     fn money_can_be_added() {
+        // Given:
         let money1 = Money::new(7, 20);
         let money2 = Money::new(5, 50);
 
@@ -55,6 +64,7 @@ mod tests {
 
     #[test]
     fn money_can_be_added_with_different_values() {
+        // Given:
         let money1 = Money::new(7, 20);
         let money2 = Money::new(5, 55);
 
@@ -63,5 +73,31 @@ mod tests {
 
         // Then:
         assert_eq!(result, Money { cents: 1275 })
+    }
+
+    #[test]
+    fn money_can_be_subtracted() {
+        // Given:
+        let money1 = Money::new(7, 20);
+        let money2 = Money::new(5, 50);
+
+        // When:
+        let result = money1 - money2;
+
+        // Then:
+        assert_eq!(result, Money { cents: 170 })
+    }
+
+    #[test]
+    fn money_can_be_subtracted_with_different_values() {
+        // Given:
+        let money1 = Money::new(7, 20);
+        let money2 = Money::new(5, 55);
+
+        // When:
+        let result = money1 - money2;
+
+        // Then:
+        assert_eq!(result, Money { cents: 165 })
     }
 }
