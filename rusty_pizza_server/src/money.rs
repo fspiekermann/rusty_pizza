@@ -2,26 +2,26 @@ use std::fmt::{self, Display, Formatter};
 use std::ops::{Add, Mul, Sub};
 
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
-struct Money {
+pub struct Money {
     cents: u32,
 }
 
 impl Money {
-    fn new(euros: u32, cents: u8) -> Money {
+    pub fn new(euros: u32, cents: u8) -> Money {
         Money {
             cents: euros * 100 + cents as u32,
         }
     }
 
-    fn get_euros(&self) -> u32 {
+    pub fn get_euros(&self) -> u32 {
         self.cents / 100
     }
 
-    fn get_cents(&self) -> u8 {
+    pub fn get_cents(&self) -> u8 {
         (self.cents % 100) as u8
     }
 
-    fn get_total_cents(&self) -> u32 {
+    pub fn get_total_cents(&self) -> u32 {
         self.cents
     }
 }
