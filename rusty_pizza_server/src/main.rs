@@ -22,6 +22,18 @@ struct Meals {
     tip: f64,
 }
 
+impl Meals {
+    fn new(user: Rc<User>) -> Meals {
+        Meals {
+            meals: Vec::new(),
+            owner: user,
+            ready: false,
+            paid: 0.0,
+            tip: 0.0,
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 enum OrderStatus {
     Open,
@@ -82,6 +94,23 @@ mod tests {
         assert_eq!(order.meals.len(), 0);
         assert_eq!(order.status, OrderStatus::Open);
         assert_eq!(order.manager, user);
+    }
+
+    #[test]
+    fn meals_can_be_created() {
+        //Given
+        let name = String::from("Peter");
+        let user = Rc::new(User { name: name });
+        //When
+        let meals = Meals::new(user.clone());
+        //Then
+        assert_eq!(meals, Meals {
+            meals: vec![],
+            owner: user,
+            ready: false,
+            paid: 0.0,
+            tip: 0.0,
+        });
     }
 
     #[test]
