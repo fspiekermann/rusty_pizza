@@ -16,6 +16,10 @@ impl Money {
     fn get_euros(&self) -> u32 {
         self.cents / 100
     }
+
+    fn get_cents(&self) -> u8 {
+        (self.cents % 100) as u8
+    }
 }
 
 impl Add for Money {
@@ -323,5 +327,29 @@ mod tests {
 
         // Then:
         assert_eq!(result, 3);
+    }
+
+    #[test]
+    fn can_get_cents_from_money() {
+        // Given:
+        let money = Money::new(2, 99);
+
+        // When:
+        let result = money.get_cents();
+
+        // Then:
+        assert_eq!(result, 99);
+    }
+
+    #[test]
+    fn can_get_cents_from_money_with_alternative_values() {
+        // Given:
+        let money = Money::new(3, 79);
+
+        // When:
+        let result = money.get_cents();
+
+        // Then:
+        assert_eq!(result, 79);
     }
 }
