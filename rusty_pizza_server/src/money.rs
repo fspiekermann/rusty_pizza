@@ -67,12 +67,8 @@ mod tests {
 
     #[test]
     fn money_can_be_added() {
-        // Given:
-        let money1 = Money::new(7, 20);
-        let money2 = Money::new(5, 50);
-
         // When:
-        let result = money1 + money2;
+        let result = Money::new(7, 20) + Money::new(5, 50);
 
         // Then:
         assert_eq!(result, Money { cents: 1270 })
@@ -80,12 +76,8 @@ mod tests {
 
     #[test]
     fn money_can_be_added_with_different_values() {
-        // Given:
-        let money1 = Money::new(7, 20);
-        let money2 = Money::new(5, 55);
-
         // When:
-        let result = money1 + money2;
+        let result = Money::new(7, 20) + Money::new(5, 55);
 
         // Then:
         assert_eq!(result, Money { cents: 1275 })
@@ -93,12 +85,8 @@ mod tests {
 
     #[test]
     fn money_can_be_subtracted() {
-        // Given:
-        let money1 = Money::new(7, 20);
-        let money2 = Money::new(5, 50);
-
         // When:
-        let result = money1 - money2;
+        let result = Money::new(7, 20) - Money::new(5, 50);
 
         // Then:
         assert_eq!(result, Money { cents: 170 })
@@ -106,12 +94,8 @@ mod tests {
 
     #[test]
     fn money_can_be_subtracted_with_different_values() {
-        // Given:
-        let money1 = Money::new(7, 20);
-        let money2 = Money::new(5, 55);
-
         // When:
-        let result = money1 - money2;
+        let result = Money::new(7, 20) - Money::new(5, 55);
 
         // Then:
         assert_eq!(result, Money { cents: 165 })
@@ -120,21 +104,14 @@ mod tests {
     #[test]
     #[should_panic]
     fn creating_negative_amount_of_money_through_subtraction_panics() {
-        // Given:
-        let money1 = Money::new(7, 20);
-        let money2 = Money::new(7, 40);
-
         // When:
-        let _ = money1 - money2;
+        let _ = Money::new(7, 20) - Money::new(7, 40);
     }
 
     #[test]
     fn money_can_be_multiplied_with_an_u8() {
-        // Given:
-        let money = Money::new(5, 0);
-
         // When:
-        let result = money * 2u8;
+        let result = Money::new(5, 0) * 2u8;
 
         // Then:
         assert_eq!(result, Money { cents: 1000 })
@@ -142,11 +119,8 @@ mod tests {
 
     #[test]
     fn money_can_be_multiplied_with_an_u8_with_different_values() {
-        // Given:
-        let money = Money::new(2, 0);
-
         // When:
-        let result = money * 3u8;
+        let result = Money::new(2, 0) * 3u8;
 
         // Then:
         assert_eq!(result, Money { cents: 600 })
@@ -154,11 +128,8 @@ mod tests {
 
     #[test]
     fn u8_can_be_multiplied_with_money() {
-        // Given:
-        let money = Money::new(5, 0);
-
         // When:
-        let result = 2u8 * money;
+        let result = 2u8 * Money::new(5, 0);
 
         // Then:
         assert_eq!(result, Money { cents: 1000 })
@@ -166,11 +137,8 @@ mod tests {
 
     #[test]
     fn u8_can_be_multiplied_with_money_with_different_values() {
-        // Given:
-        let money = Money::new(2, 0);
-
         // When:
-        let result = 3u8 * money;
+        let result = 3u8 * Money::new(2, 0);
 
         // Then:
         assert_eq!(result, Money { cents: 600 })
