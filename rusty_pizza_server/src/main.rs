@@ -1,7 +1,7 @@
-use std::rc::Rc;
-use std::collections::HashSet;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
+use std::rc::Rc;
 
 // TODO: calculate change money
 // TODO: Implement custom money type
@@ -37,7 +37,7 @@ impl Hash for Meal {
 }
 
 // TODO: Remove this in once custom money type was introduced
-impl Eq for Meal { }
+impl Eq for Meal {}
 
 #[derive(Debug, PartialEq)]
 struct Meals {
@@ -112,7 +112,9 @@ mod tests {
     #[test]
     fn order_can_be_created() {
         //Given
-        let user = Rc::new(User { name: String::from("Peter") });
+        let user = Rc::new(User {
+            name: String::from("Peter"),
+        });
         //When
         let order = Order::new(user.clone());
         //Then
@@ -124,39 +126,51 @@ mod tests {
     #[test]
     fn meals_can_be_created() {
         //Given
-        let user = Rc::new(User { name: String::from("Peter") });
+        let user = Rc::new(User {
+            name: String::from("Peter"),
+        });
         //When
         let meals = Meals::new(user.clone());
         //Then
-        assert_eq!(meals, Meals {
-            meals: HashMap::new(),
-            owner: user,
-            ready: false,
-            paid: 0.0,
-            tip: 0.0,
-        });
+        assert_eq!(
+            meals,
+            Meals {
+                meals: HashMap::new(),
+                owner: user,
+                ready: false,
+                paid: 0.0,
+                tip: 0.0,
+            }
+        );
     }
 
     #[test]
     fn user_can_be_added_to_order() {
         //Given
-        let manager = Rc::new(User { name: String::from("Peter") });
+        let manager = Rc::new(User {
+            name: String::from("Peter"),
+        });
         let mut order = Order::new(manager.clone());
-        
-        let user = Rc::new(User { name: String::from("Karl") });
+
+        let user = Rc::new(User {
+            name: String::from("Karl"),
+        });
 
         //When
         order.add_user(user.clone());
 
         //Then
         assert_eq!(order.meals.len(), 1);
-        assert_eq!(order.meals[&user], Meals {
-            meals: HashMap::new(),
-            owner: user,
-            ready: false,
-            paid: 0.0,
-            tip: 0.0,
-        });
+        assert_eq!(
+            order.meals[&user],
+            Meals {
+                meals: HashMap::new(),
+                owner: user,
+                ready: false,
+                paid: 0.0,
+                tip: 0.0,
+            }
+        );
         assert_eq!(order.status, OrderStatus::Open);
         assert_eq!(order.manager, manager);
     }
@@ -164,7 +178,9 @@ mod tests {
     #[test]
     fn meal_can_be_added_to_meals() {
         //Given
-        let user = Rc::new(User { name: String::from("Peter") });
+        let user = Rc::new(User {
+            name: String::from("Peter"),
+        });
         let mut meals = Meals::new(user.clone());
 
         let meal = Meal {
@@ -179,19 +195,25 @@ mod tests {
 
         //Then
         let mut expected_meals = HashMap::new();
-        expected_meals.insert(Meal {
-            meal_id: String::from("03"),
-            variety: String::from("groß"),
-            price: 5.50,
-            specials: HashSet::new(),
-        }, 1);
-        assert_eq!(meals, Meals {
-            meals: expected_meals,
-            owner: user,
-            ready: false,
-            paid: 0.0,
-            tip: 0.0,
-        });
+        expected_meals.insert(
+            Meal {
+                meal_id: String::from("03"),
+                variety: String::from("groß"),
+                price: 5.50,
+                specials: HashSet::new(),
+            },
+            1,
+        );
+        assert_eq!(
+            meals,
+            Meals {
+                meals: expected_meals,
+                owner: user,
+                ready: false,
+                paid: 0.0,
+                tip: 0.0,
+            }
+        );
     }
 
     #[test]
@@ -212,12 +234,15 @@ mod tests {
         //Then
         let mut expected_specials = HashSet::new();
         expected_specials.insert(String::from("Käserand"));
-        assert_eq!(meal, Meal {
-            meal_id: String::from("03"),
-            variety: String::from("groß"),
-            price: 5.50,
-            specials: expected_specials,
-        });
+        assert_eq!(
+            meal,
+            Meal {
+                meal_id: String::from("03"),
+                variety: String::from("groß"),
+                price: 5.50,
+                specials: expected_specials,
+            }
+        );
     }
 
     #[test]
@@ -238,11 +263,14 @@ mod tests {
         meal.remove_special(&special);
 
         //Then
-        assert_eq!(meal, Meal {
-            meal_id: String::from("03"),
-            variety: String::from("groß"),
-            price: 5.50,
-            specials: HashSet::new(),
-        });
+        assert_eq!(
+            meal,
+            Meal {
+                meal_id: String::from("03"),
+                variety: String::from("groß"),
+                price: 5.50,
+                specials: HashSet::new(),
+            }
+        );
     }
 }
