@@ -35,6 +35,14 @@ impl Mul<u8> for Money {
     }
 }
 
+impl Mul<Money> for u8 {
+    type Output = Money;
+
+    fn mul(self, other: Money) -> Money {
+        other * self
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -126,7 +134,7 @@ mod tests {
         let money = Money::new(5, 0);
 
         // When:
-        let result = money * 2;
+        let result = money * 2u8;
 
         // Then:
         assert_eq!(result, Money { cents: 1000 })
@@ -138,7 +146,31 @@ mod tests {
         let money = Money::new(2, 0);
 
         // When:
-        let result = money * 3;
+        let result = money * 3u8;
+
+        // Then:
+        assert_eq!(result, Money { cents: 600 })
+    }
+
+    #[test]
+    fn u8_can_be_multiplied_with_money() {
+        // Given:
+        let money = Money::new(5, 0);
+
+        // When:
+        let result = 2u8 * money;
+
+        // Then:
+        assert_eq!(result, Money { cents: 1000 })
+    }
+
+    #[test]
+    fn u8_can_be_multiplied_with_money_with_different_values() {
+        // Given:
+        let money = Money::new(2, 0);
+
+        // When:
+        let result = 3u8 * money;
 
         // Then:
         assert_eq!(result, Money { cents: 600 })
