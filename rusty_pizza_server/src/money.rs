@@ -1,3 +1,4 @@
+use std::fmt::{self, Formatter, Display};
 use std::ops::{Add, Sub, Mul};
 
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
@@ -75,9 +76,18 @@ impl Mul<Money> for u32 {
     }
 }
 
+impl Display for Money {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let euros = self.cents / 100;
+        let cents = self.cents % 100;
+        write!(f, "{},{}€", euros, cents)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fmt::Write;
 
     #[test]
     fn money_can_be_created() {
@@ -260,5 +270,19 @@ mod tests {
         // Then:
         assert_eq!(result1, Money { cents: 600 });
         assert_eq!(result2, Money { cents: 300 });
+    }
+
+    #[test]
+    fn money_prints_as_euro_amount() {
+        // Given:
+        let money = Money::new(2, 99);
+
+        // When:
+        let mut output = String::new();
+        write!(&mut output, "{}", money)
+            .expect("Error formatting money");
+
+        // Then:
+        assert_eq!(output, "2,99€");
     }
 }
