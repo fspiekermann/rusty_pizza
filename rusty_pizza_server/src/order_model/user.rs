@@ -13,7 +13,7 @@ impl User {
     }
 
     pub fn get_name(&self) -> String {
-        self.name
+        String::from(self.name.as_str())
     }
 }
 
@@ -23,10 +23,11 @@ mod tests {
 
     fn user_can_be_created() {
         //Given
-        let name = String::from("Peter")
+        let str_name = "Peter";
+        let name = String::from(str_name);
         //When
-        let user = User::new(&name)
+        let user = User::new(name);
         //Then
-        assert_eq!(name, user.get_name())
+        assert_eq!(String::from(str_name), user.get_name());
     }
 }

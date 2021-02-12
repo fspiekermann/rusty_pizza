@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 use crate::util::money::Money;
 
 #[derive(Debug, PartialEq, Eq, Hash)]
-struct Meal {
+pub struct Meal {
     /// Number of the meal in the menu
     meal_id: String,
     /// Size of the pizza or noodle type etc.
@@ -12,12 +12,21 @@ struct Meal {
 }
 
 impl Meal {
-    fn add_special(&mut self, special: String) {
+    pub fn add_special(&mut self, special: String) {
         self.specials.insert(special);
     }
 
-    fn remove_special(&mut self, special: &String) {
+    pub fn remove_special(&mut self, special: &String) {
         self.specials.remove(special);
+    }
+
+    pub(super) fn new_for_test(meal_id: String, variety: String, price: Money) -> Meal {
+        Meal {
+            meal_id,
+            variety,
+            price,
+            specials: BTreeSet::new(),
+        }
     }
 }
 

@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
 use std::rc::Rc;
-use crate::order_model::user;
-use crate::order_model::meals;
+use crate::order_model::user::User;
+use crate::order_model::meals::Meals;
+use crate::util::money::Money;
 
 #[derive(Debug, PartialEq)]
 enum OrderStatus {
@@ -76,13 +77,7 @@ mod tests {
         assert_eq!(order.meals.len(), 1);
         assert_eq!(
             order.meals[&user],
-            Meals {
-                meals: HashMap::new(),
-                owner: user,
-                ready: false,
-                paid: Money::new(0, 0),
-                tip: Money::new(0, 0),
-            }
+            Meals::new_for_test(user.clone(), false)
         );
         assert_eq!(order.status, OrderStatus::Open);
         assert_eq!(order.manager, manager);
@@ -91,7 +86,7 @@ mod tests {
     #[rstest(status, expected,
         case(OrderStatus::Open, String::from("Open")),
         case(OrderStatus::Ordering, String::from("Ordering")),
-        case(OrderStatus::Ordered("12:15"), String::from("Ordered(\"12:15\")")),
+        case(OrderStatus::Ordered(String::from("12:15")), String::from("Ordered(\"12:15\")")),
         case(OrderStatus::Delivered, String::from("Delivered")),
     )]
     fn order_status_is_formatted_correctly(status: OrderStatus, expected: String) {
