@@ -111,60 +111,43 @@ impl Display for Money {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rstest::rstest;
     use std::fmt::Write;
 
-    #[test]
-    fn money_can_be_created() {
+    #[rstest(euros, cents, expected,
+        case(5, 50, 550),
+        case(7, 20, 720),
+    )]
+    fn money_can_be_created(euros: u32, cents: u8, expected: u32) {
         // When:
-        let money = Money::new(5, 50);
+        let money = Money::new(euros, cents);
 
         // Then:
-        assert_eq!(money, Money { cents: 550 })
+        assert_eq!(money, Money { cents: expected });
     }
 
-    #[test]
-    fn money_can_be_created_with_alternative_values() {
+    #[rstest(addend1, addend2, sum,
+        case(Money::new(7, 20), Money::new(5, 50), Money { cents: 1270 }),
+        case(Money::new(7, 20), Money::new(5, 55), Money { cents: 1275 }),
+    )]
+    fn money_can_be_added(addend1: Money, addend2: Money, sum: Money) {
         // When:
-        let money = Money::new(7, 20);
+        let result = addend1 + addend2;
 
         // Then:
-        assert_eq!(money, Money { cents: 720 })
+        assert_eq!(result, sum);
     }
 
-    #[test]
-    fn money_can_be_added() {
+    #[rstest(minuend, subtrahent, difference,
+        case(Money::new(7, 20), Money::new(5, 50), Money { cents: 170 }),
+        case(Money::new(7, 20), Money::new(5, 55), Money { cents: 165 }),
+    )]
+    fn money_can_be_subtracted(minuend: Money, subtrahent: Money, difference: Money) {
         // When:
-        let result = Money::new(7, 20) + Money::new(5, 50);
+        let result = minuend - subtrahent;
 
         // Then:
-        assert_eq!(result, Money { cents: 1270 })
-    }
-
-    #[test]
-    fn money_can_be_added_with_different_values() {
-        // When:
-        let result = Money::new(7, 20) + Money::new(5, 55);
-
-        // Then:
-        assert_eq!(result, Money { cents: 1275 })
-    }
-
-    #[test]
-    fn money_can_be_subtracted() {
-        // When:
-        let result = Money::new(7, 20) - Money::new(5, 50);
-
-        // Then:
-        assert_eq!(result, Money { cents: 170 })
-    }
-
-    #[test]
-    fn money_can_be_subtracted_with_different_values() {
-        // When:
-        let result = Money::new(7, 20) - Money::new(5, 55);
-
-        // Then:
-        assert_eq!(result, Money { cents: 165 })
+        assert_eq!(result, difference)
     }
 
     #[test]
@@ -174,112 +157,76 @@ mod tests {
         let _ = Money::new(7, 20) - Money::new(7, 40);
     }
 
-    #[test]
-    fn money_can_be_multiplied_with_an_u8() {
+    #[rstest(money, factor, product,
+        case(Money::new(5, 0), 2u8, Money { cents: 1000 }),
+        case(Money::new(2, 5), 3u8, Money { cents: 615 }),
+    )]
+    fn money_can_be_multiplied_with_u8(money: Money, factor: u8, product: Money) {
         // When:
-        let result = Money::new(5, 0) * 2u8;
+        let result = money * factor;
 
         // Then:
-        assert_eq!(result, Money { cents: 1000 })
+        assert_eq!(result, product);
     }
 
-    #[test]
-    fn money_can_be_multiplied_with_an_u8_with_different_values() {
+    #[rstest(money, factor, product,
+        case(Money::new(5, 0), 2u8, Money { cents: 1000 }),
+        case(Money::new(2, 5), 3u8, Money { cents: 615 }),
+    )]
+    fn u8_can_be_multiplied_with_money(money: Money, factor: u8, product: Money) {
         // When:
-        let result = Money::new(2, 0) * 3u8;
+        let result = factor * money;
 
         // Then:
-        assert_eq!(result, Money { cents: 600 })
+        assert_eq!(result, product);
     }
 
-    #[test]
-    fn u8_can_be_multiplied_with_money() {
+    #[rstest(money, factor, product,
+        case(Money::new(5, 0), 2u16, Money { cents: 1000 }),
+        case(Money::new(2, 5), 3u16, Money { cents: 615 }),
+    )]
+    fn money_can_be_multiplied_with_u16(money: Money, factor: u16, product: Money) {
         // When:
-        let result = 2u8 * Money::new(5, 0);
+        let result = money * factor;
 
         // Then:
-        assert_eq!(result, Money { cents: 1000 })
+        assert_eq!(result, product);
     }
 
-    #[test]
-    fn u8_can_be_multiplied_with_money_with_different_values() {
+    #[rstest(money, factor, product,
+        case(Money::new(5, 0), 2u16, Money { cents: 1000 }),
+        case(Money::new(2, 5), 3u16, Money { cents: 615 }),
+    )]
+    fn u16_can_be_multiplied_with_money(money: Money, factor: u16, product: Money) {
         // When:
-        let result = 3u8 * Money::new(2, 0);
+        let result = factor * money;
 
         // Then:
-        assert_eq!(result, Money { cents: 600 })
+        assert_eq!(result, product);
     }
 
-    #[test]
-    fn money_can_be_multiplied_with_an_u16() {
+    #[rstest(money, factor, product,
+        case(Money::new(5, 0), 2, Money { cents: 1000 }),
+        case(Money::new(2, 5), 3, Money { cents: 615 }),
+    )]
+    fn money_can_be_multiplied_with_u32(money: Money, factor: u32, product: Money) {
         // When:
-        let result = Money::new(5, 0) * 2u16;
+        let result = money * factor;
 
         // Then:
-        assert_eq!(result, Money { cents: 1000 })
+        assert_eq!(result, product);
     }
 
-    #[test]
-    fn money_can_be_multiplied_with_an_u16_with_different_values() {
+    #[rstest(money, factor, product,
+        case(Money::new(5, 0), 2, Money { cents: 1000 }),
+        case(Money::new(2, 5), 3, Money { cents: 615 }),
+    )]
+    fn u32_can_be_multiplied_with_money(money: Money, factor: u32, product: Money) {
         // When:
-        let result = Money::new(2, 0) * 3u16;
+        let result = factor * money;
 
         // Then:
-        assert_eq!(result, Money { cents: 600 })
-    }
-
-    #[test]
-    fn u16_can_be_multiplied_with_money() {
-        // When:
-        let result = 2u16 * Money::new(5, 0);
-
-        // Then:
-        assert_eq!(result, Money { cents: 1000 })
-    }
-
-    #[test]
-    fn u16_can_be_multiplied_with_money_with_different_values() {
-        // When:
-        let result = 3u16 * Money::new(2, 0);
-
-        // Then:
-        assert_eq!(result, Money { cents: 600 })
-    }
-
-    #[test]
-    fn money_can_be_multiplied_with_an_u32() {
-        // When:
-        let result = Money::new(5, 0) * 2u32;
-
-        // Then:
-        assert_eq!(result, Money { cents: 1000 })
-    }
-
-    #[test]
-    fn money_can_be_multiplied_with_an_u32_with_different_values() {
-        // When:
-        let result = Money::new(2, 0) * 3u32;
-
-        // Then:
-        assert_eq!(result, Money { cents: 600 })
-    }
-
-    #[test]
-    fn u32_can_be_multiplied_with_money() {
-        // When:
-        let result = 2u32 * Money::new(5, 0);
-
-        // Then:
-        assert_eq!(result, Money { cents: 1000 })
-    }
-
-    #[test]
-    fn u32_can_be_multiplied_with_money_with_different_values() {
-        // When:
-        let result = 3u32 * Money::new(2, 0);
-
-        // Then:
-        assert_eq!(result, Money { cents: 600 })
+        assert_eq!(result, product);
     }
 
     #[test]
@@ -309,75 +256,42 @@ mod tests {
         assert_eq!(output, "2,99€");
     }
 
-    #[test]
-    fn can_get_euros_from_money() {
-        // Given:
-        let money = Money::new(2, 99);
-
+    #[rstest(money, expected,
+        case(Money::new(2, 99), 2),
+        case(Money::new(3, 99), 3),
+        case(Money::new(3, 179), 4),
+    )]
+    fn can_get_euros_from_money(money: Money, expected: u32) {
         // When:
         let result = money.get_euros();
 
         // Then:
-        assert_eq!(result, 2);
+        assert_eq!(result, expected);
     }
 
-    #[test]
-    fn can_get_euros_from_money_with_alternative_values() {
-        // Given:
-        let money = Money::new(3, 99);
-
-        // When:
-        let result = money.get_euros();
-
-        // Then:
-        assert_eq!(result, 3);
-    }
-
-    #[test]
-    fn can_get_cents_from_money() {
-        // Given:
-        let money = Money::new(2, 99);
-
+    #[rstest(money, expected,
+        case(Money::new(2, 99), 99),
+        case(Money::new(3, 79), 79),
+        case(Money::new(3, 179), 79),
+    )]
+    fn can_get_cents_from_money(money: Money, expected: u8) {
         // When:
         let result = money.get_cents();
 
         // Then:
-        assert_eq!(result, 99);
+        assert_eq!(result, expected);
     }
 
-    #[test]
-    fn can_get_cents_from_money_with_alternative_values() {
-        // Given:
-        let money = Money::new(3, 79);
-
-        // When:
-        let result = money.get_cents();
-
-        // Then:
-        assert_eq!(result, 79);
-    }
-
-    #[test]
-    fn can_get_total_cents_from_money() {
-        // Given:
-        let money = Money::new(2, 99);
-
+    #[rstest(money, expected,
+        case(Money::new(2, 99), 299),
+        case(Money::new(3, 79), 379),
+        case(Money::new(3, 179), 479),
+    )]
+    fn can_get_total_cents_from_money(money: Money, expected: u32) {
         // When:
         let result = money.get_total_cents();
 
         // Then:
-        assert_eq!(result, 299);
-    }
-
-    #[test]
-    fn can_get_total_cents_from_money_with_alternative_values() {
-        // Given:
-        let money = Money::new(3, 79);
-
-        // When:
-        let result = money.get_total_cents();
-
-        // Then:
-        assert_eq!(result, 379);
+        assert_eq!(result, expected);
     }
 }
