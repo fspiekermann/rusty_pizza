@@ -21,5 +21,8 @@ mod tests {
 
         // When:
         let id = id_provider.generate_next();
+
+        // Then:
+        assert_eq!(id, 0);
     }
 }
