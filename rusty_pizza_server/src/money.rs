@@ -128,7 +128,7 @@ mod tests {
 
     #[rstest(addend1, addend2, sum,
         case(Money::new(7, 20), Money::new(5, 50), Money { cents: 1270 }),
-        case(Money::new(7, 20), Money::new(5, 55), Money { cents: 1275 }),
+        case(Money::new(8, 21), Money::new(4, 55), Money { cents: 1276 }),
     )]
     fn money_can_be_summed(addend1: Money, addend2: Money, sum: Money) {
         // When:
