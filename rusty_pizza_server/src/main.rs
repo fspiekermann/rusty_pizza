@@ -1,16 +1,18 @@
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::hash::{Hash, Hasher};
+use std::collections::{BTreeSet, HashMap};
+use std::hash::Hash;
 use std::rc::Rc;
 
-#[derive(Debug, PartialEq)]
+mod money;
+use money::Money;
+
+#[derive(Debug, PartialEq, Eq, Hash)]
 struct Meal {
     /// Number of the meal in the menu
     meal_id: String,
     /// Size of the pizza or noodle type etc.
     variety: String,
-    specials: HashSet<String>,
-    price: f64,
+    specials: BTreeSet<String>,
+    price: Money,
 }
 
 impl Meal {
@@ -23,19 +25,6 @@ impl Meal {
     }
 }
 
-impl Hash for Meal {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.meal_id.hash(state);
-        self.variety.hash(state);
-        self.price.to_string().hash(state);
-        for special in &self.specials {
-            special.hash(state);
-        }
-    }
-}
-
-impl Eq for Meal {}
-
 #[derive(Debug, PartialEq)]
 struct Meals {
     /// Meal and quantity
@@ -43,8 +32,8 @@ struct Meals {
     owner: Rc<User>,
     /// Whether the meals selection has been completed
     ready: bool,
-    paid: f64,
-    tip: f64,
+    paid: Money,
+    tip: Money,
 }
 
 impl Meals {
@@ -53,8 +42,8 @@ impl Meals {
             meals: HashMap::new(),
             owner: user,
             ready: false,
-            paid: 0.0,
-            tip: 0.0,
+            paid: Money::new(0, 0),
+            tip: Money::new(0, 0),
         }
     }
 
@@ -135,8 +124,8 @@ mod tests {
                 meals: HashMap::new(),
                 owner: user,
                 ready: false,
-                paid: 0.0,
-                tip: 0.0,
+                paid: Money::new(0, 0),
+                tip: Money::new(0, 0),
             }
         );
     }
@@ -164,8 +153,8 @@ mod tests {
                 meals: HashMap::new(),
                 owner: user,
                 ready: false,
-                paid: 0.0,
-                tip: 0.0,
+                paid: Money::new(0, 0),
+                tip: Money::new(0, 0),
             }
         );
         assert_eq!(order.status, OrderStatus::Open);
@@ -183,8 +172,8 @@ mod tests {
         let meal = Meal {
             meal_id: String::from("03"),
             variety: String::from("groß"),
-            price: 5.50,
-            specials: HashSet::new(),
+            price: Money::new(5, 50),
+            specials: BTreeSet::new(),
         };
 
         //When
@@ -196,8 +185,8 @@ mod tests {
             Meal {
                 meal_id: String::from("03"),
                 variety: String::from("groß"),
-                price: 5.50,
-                specials: HashSet::new(),
+                price: Money::new(5, 50),
+                specials: BTreeSet::new(),
             },
             1,
         );
@@ -207,8 +196,8 @@ mod tests {
                 meals: expected_meals,
                 owner: user,
                 ready: false,
-                paid: 0.0,
-                tip: 0.0,
+                paid: Money::new(0, 0),
+                tip: Money::new(0, 0),
             }
         );
     }
@@ -219,8 +208,8 @@ mod tests {
         let mut meal = Meal {
             meal_id: String::from("03"),
             variety: String::from("groß"),
-            price: 5.50,
-            specials: HashSet::new(),
+            price: Money::new(5, 50),
+            specials: BTreeSet::new(),
         };
 
         let special = String::from("Käserand");
@@ -229,14 +218,14 @@ mod tests {
         meal.add_special(special);
 
         //Then
-        let mut expected_specials = HashSet::new();
+        let mut expected_specials = BTreeSet::new();
         expected_specials.insert(String::from("Käserand"));
         assert_eq!(
             meal,
             Meal {
                 meal_id: String::from("03"),
                 variety: String::from("groß"),
-                price: 5.50,
+                price: Money::new(5, 50),
                 specials: expected_specials,
             }
         );
@@ -245,12 +234,12 @@ mod tests {
     #[test]
     fn special_can_be_removed_from_meal() {
         //Given
-        let mut specials = HashSet::new();
+        let mut specials = BTreeSet::new();
         specials.insert(String::from("Käserand"));
         let mut meal = Meal {
             meal_id: String::from("03"),
             variety: String::from("groß"),
-            price: 5.50,
+            price: Money::new(5, 50),
             specials,
         };
 
@@ -265,8 +254,8 @@ mod tests {
             Meal {
                 meal_id: String::from("03"),
                 variety: String::from("groß"),
-                price: 5.50,
-                specials: HashSet::new(),
+                price: Money::new(5, 50),
+                specials: BTreeSet::new(),
             }
         );
     }
