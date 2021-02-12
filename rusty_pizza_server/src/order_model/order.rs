@@ -35,9 +35,10 @@ impl Order {
         }
     }
 
-    pub fn add_user(&mut self, user: Rc<User>) {
+    pub fn add_user(&mut self, user: Rc<User>) -> &mut Meals {
         let meals = Meals::new(user.clone());
-        self.meals.insert(user, meals);
+        self.meals.insert(user.clone(), meals);
+        self.meals.get_mut(&user).unwrap()
     }
 }
 
@@ -67,9 +68,10 @@ mod tests {
         let user = Rc::new(User::new(String::from("Petra")));
 
         //When
-        order.add_user(user.clone());
+        let meal = order.add_user(user.clone());
 
         //Then
+        assert_eq!(meal, &mut Meals::new(user.clone()));
         assert_eq!(order.meals.len(), 1);
         assert_eq!(order.meals[&user], Meals::new(user.clone()));
         assert_eq!(order.status, OrderStatus::Open);
