@@ -7,6 +7,13 @@ pub struct Money {
 }
 
 impl Money {
+    /// Creates a new `Money` instance from `euros` and `cents`.
+    ///
+    /// Note that this method does not limit the amount of `cents` to `99`. You can happily pass any amount:
+    /// ```
+    /// let money = Money::new(1, 205);
+    /// assert_eq!(money, Money::new(3, 5));
+    /// ```
     pub fn new(euros: u32, cents: u8) -> Money {
         Money {
             cents: euros * 100 + cents as u32,
@@ -112,10 +119,7 @@ mod tests {
     use rstest::rstest;
     use std::fmt::Write;
 
-    #[rstest(euros, cents, expected,
-        case(5, 50, 550),
-        case(7, 20, 720),
-    )]
+    #[rstest(euros, cents, expected, case(5, 50, 550), case(7, 20, 720))]
     fn money_can_be_created(euros: u32, cents: u8, expected: u32) {
         // When:
         let money = Money::new(euros, cents);
@@ -255,10 +259,12 @@ mod tests {
         assert_eq!(output, "2,99€");
     }
 
-    #[rstest(money, expected,
+    #[rstest(
+        money,
+        expected,
         case(Money::new(2, 99), 2),
         case(Money::new(3, 99), 3),
-        case(Money::new(3, 179), 4),
+        case(Money::new(3, 179), 4)
     )]
     fn can_get_euros_from_money(money: Money, expected: u32) {
         // When:
@@ -268,10 +274,12 @@ mod tests {
         assert_eq!(result, expected);
     }
 
-    #[rstest(money, expected,
+    #[rstest(
+        money,
+        expected,
         case(Money::new(2, 99), 99),
         case(Money::new(3, 79), 79),
-        case(Money::new(3, 179), 79),
+        case(Money::new(3, 179), 79)
     )]
     fn can_get_cents_from_money(money: Money, expected: u8) {
         // When:
@@ -281,10 +289,12 @@ mod tests {
         assert_eq!(result, expected);
     }
 
-    #[rstest(money, expected,
+    #[rstest(
+        money,
+        expected,
         case(Money::new(2, 99), 299),
         case(Money::new(3, 79), 379),
-        case(Money::new(3, 179), 479),
+        case(Money::new(3, 179), 479)
     )]
     fn can_get_total_cents_from_money(money: Money, expected: u32) {
         // When:
