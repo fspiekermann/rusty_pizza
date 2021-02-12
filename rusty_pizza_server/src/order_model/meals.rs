@@ -1,8 +1,8 @@
-use std::collections::{BTreeSet, HashMap};
-use std::rc::Rc;
-use crate::util::money::Money;
 use crate::order_model::meal::Meal;
 use crate::order_model::user::User;
+use crate::util::money::Money;
+use std::collections::{BTreeSet, HashMap};
+use std::rc::Rc;
 
 #[derive(Debug, PartialEq)]
 pub struct Meals {
@@ -38,7 +38,6 @@ impl Meals {
             paid: Money::new(0, 0),
             tip: Money::new(0, 0),
         }
-        
     }
 }
 

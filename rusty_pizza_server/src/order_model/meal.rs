@@ -1,5 +1,5 @@
-use std::collections::BTreeSet;
 use crate::util::money::Money;
+use std::collections::BTreeSet;
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Meal {
