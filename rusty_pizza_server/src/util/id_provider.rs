@@ -4,6 +4,10 @@ impl IdProvider {
     fn new() -> IdProvider {
         IdProvider {}
     }
+
+    fn generate_next(&mut self) -> u32 {
+        0
+    }
 }
 
 #[cfg(test)]
@@ -13,6 +17,9 @@ mod tests {
     #[test]
     fn first_id_is_zero() {
         // Given:
-        let id_provider = IdProvider::new();
+        let mut id_provider = IdProvider::new();
+
+        // When:
+        let id = id_provider.generate_next();
     }
 }
