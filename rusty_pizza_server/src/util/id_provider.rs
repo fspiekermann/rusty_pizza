@@ -3,11 +3,11 @@ pub struct IdProvider {
 }
 
 impl IdProvider {
-    fn new() -> IdProvider {
+    pub fn new() -> IdProvider {
         IdProvider { next_id: 0 }
     }
 
-    fn generate_next(&mut self) -> u32 {
+    pub fn generate_next(&mut self) -> u32 {
         let next = self.next_id;
         self.next_id = next + 1;
         next
