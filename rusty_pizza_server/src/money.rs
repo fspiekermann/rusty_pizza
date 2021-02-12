@@ -239,6 +239,7 @@ mod tests {
         let result2 = money + Money::new(1, 0);
 
         // Then:
+        assert_eq!(money, Money { cents: 200 });
         assert_eq!(result1, Money { cents: 600 });
         assert_eq!(result2, Money { cents: 300 });
     }
