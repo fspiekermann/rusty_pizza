@@ -102,9 +102,7 @@ impl Mul<Money> for u32 {
 
 impl Display for Money {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let euros = self.cents / 100;
-        let cents = self.cents % 100;
-        write!(f, "{},{}€", euros, cents)
+        write!(f, "{},{}€", self.get_euros(), self.get_cents())
     }
 }
 
