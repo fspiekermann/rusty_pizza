@@ -130,7 +130,7 @@ mod tests {
         case(Money::new(7, 20), Money::new(5, 50), Money { cents: 1270 }),
         case(Money::new(7, 20), Money::new(5, 55), Money { cents: 1275 }),
     )]
-    fn money_can_be_added(addend1: Money, addend2: Money, sum: Money) {
+    fn money_can_be_summed(addend1: Money, addend2: Money, sum: Money) {
         // When:
         let result = addend1 + addend2;
 
