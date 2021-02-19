@@ -3,6 +3,7 @@ use crate::order_model::meals::Meals;
 use crate::order_model::user::User;
 use crate::util::money::Money;
 use std::collections::HashMap;
+use std::convert::Infallible;
 use std::fmt;
 use std::rc::Rc;
 
@@ -48,8 +49,13 @@ impl Order {
         meal_id: String,
         variety: String,
         price: Money,
-    ) -> Option<Meal> {
-        None
+    ) -> Result<Meal, Infallible> {
+        Ok(Meal::new(
+            0,
+            String::from("03"),
+            String::from("groß"),
+            Money::new(5, 50),
+        ))
     }
 }
 
