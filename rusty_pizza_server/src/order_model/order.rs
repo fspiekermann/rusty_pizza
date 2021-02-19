@@ -157,4 +157,20 @@ mod tests {
         // Then:
         assert_eq!(meals, None);
     }
+
+    #[test]
+    fn user_participating_in_order_has_meals() {
+        // Given:
+        let manager = Rc::new(User::new(String::from("Peter")));
+        let mut order = Order::new(manager.clone());
+
+        let user = Rc::new(User::new(String::from("Petra")));
+        order.add_user(user.clone());
+
+        // When:
+        let meals = order.get_meals_for_user(user.clone());
+
+        // Then:
+        assert_eq!(meals, Some(&mut Meals::new(user)));
+    }
 }
