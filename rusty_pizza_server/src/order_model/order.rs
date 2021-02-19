@@ -113,8 +113,13 @@ mod tests {
         assert_eq!(expected, status.to_string())
     }
 
-    #[test]
-    fn meal_can_be_added_to_order_for_user() {
+    #[rstest(
+        meal_id,
+        variety,
+        price,
+        case(String::from("03"), String::from("groß"), Money::new(5, 50))
+    )]
+    fn meal_can_be_added_to_order_for_user(meal_id: String, variety: String, price: Money) {
         // Given:
         let manager = Rc::new(User::new(String::from("Peter")));
         let mut order = Order::new(manager.clone());
@@ -125,20 +130,12 @@ mod tests {
         // When:
         let meal = order.add_meal_for_user(
             user.clone(),
-            String::from("03"),
-            String::from("groß"),
-            Money::new(5, 50),
+            meal_id.clone(),
+            variety.clone(),
+            price.clone(),
         );
 
         // Then:
-        assert_eq!(
-            meal,
-            Ok(&mut Meal::new(
-                0,
-                String::from("03"),
-                String::from("groß"),
-                Money::new(5, 50)
-            ))
-        );
+        assert_eq!(meal, Ok(&mut Meal::new(0, meal_id, variety, price)));
     }
 }
