@@ -140,7 +140,18 @@ mod tests {
         );
 
         // Then:
-        assert_eq!(meal, Ok(&mut Meal::new(0, meal_id, variety, price)));
+        assert_eq!(
+            meal,
+            Ok(&mut Meal::new(
+                0,
+                meal_id.clone(),
+                variety.clone(),
+                price.clone()
+            ))
+        );
+        let mut expected_meals = Meals::new(user.clone());
+        expected_meals.add_meal(Meal::new(0, meal_id, variety, price));
+        assert_eq!(order.get_meals_for_user(user), Some(&mut expected_meals));
     }
 
     #[test]
