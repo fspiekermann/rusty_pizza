@@ -162,4 +162,19 @@ mod tests {
             }
         );
     }
+
+    #[test]
+    fn meals_created_through_factory_have_unique_ids() {
+        // Given:
+        let meal_factory = MealFactory::new();
+
+        // When:
+        let meal1_id =
+            meal_factory.create_meal(String::from("03"), String::from("groß"), Money::new(5, 50)).get_id();
+        let meal2_id =
+            meal_factory.create_meal(String::from("03"), String::from("groß"), Money::new(5, 50)).get_id();
+
+        // Then;
+        assert!(meal1_id != meal2_id);
+    }
 }
