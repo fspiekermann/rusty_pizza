@@ -12,8 +12,8 @@ impl User {
         self.name = name
     }
 
-    pub fn get_name(&self) -> String {
-        String::from(self.name.as_str())
+    pub fn get_name(&self) -> &String {
+        &self.name
     }
 }
 
@@ -28,6 +28,6 @@ mod tests {
         //When
         let user = User::new(name);
         //Then
-        assert_eq!(String::from(str_name), user.get_name());
+        assert_eq!(str_name, user.get_name());
     }
 }

@@ -15,18 +15,18 @@ impl Meal {
     pub fn add_special(&mut self, special: String) {
         self.specials.insert(special);
     }
+    
+        pub fn new(meal_id: String, variety: String, price: Money) -> Meal {
+            Meal {
+                meal_id,
+                variety,
+                price,
+                specials: BTreeSet::new(),
+            }
+        }
 
     pub fn remove_special(&mut self, special: &String) {
         self.specials.remove(special);
-    }
-
-    pub(super) fn new_for_test(meal_id: String, variety: String, price: Money) -> Meal {
-        Meal {
-            meal_id,
-            variety,
-            price,
-            specials: BTreeSet::new(),
-        }
     }
 }
 

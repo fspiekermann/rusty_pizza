@@ -29,16 +29,6 @@ impl Meals {
     pub fn add_meal(&mut self, meal: Meal) {
         self.meals.insert(meal, 1);
     }
-
-    pub(super) fn new_for_test(owner: Rc<User>, ready: bool) -> Meals {
-        Meals {
-            meals: HashMap::new(),
-            owner,
-            ready,
-            paid: Money::new(0, 0),
-            tip: Money::new(0, 0),
-        }
-    }
 }
 
 #[cfg(test)]
@@ -70,7 +60,7 @@ mod tests {
         let user = Rc::new(User::new(String::from("Peter")));
         let mut meals = Meals::new(user.clone());
 
-        let meal = Meal::new_for_test(String::from("03"), String::from("groß"), Money::new(5, 50));
+        let meal = Meal::new(String::from("03"), String::from("groß"), Money::new(5, 50));
 
         //When
         meals.add_meal(meal);
@@ -78,7 +68,7 @@ mod tests {
         //Then
         let mut expected_meals = HashMap::new();
         expected_meals.insert(
-            Meal::new_for_test(String::from("03"), String::from("groß"), Money::new(5, 50)),
+            Meal::new(String::from("03"), String::from("groß"), Money::new(5, 50)),
             1,
         );
         assert_eq!(

@@ -39,10 +39,6 @@ impl Order {
         let meals = Meals::new(user.clone());
         self.meals.insert(user, meals);
     }
-
-    pub fn get_order_status(self) -> String {
-        self.status.to_string()
-    }
 }
 
 #[cfg(test)]
@@ -75,7 +71,7 @@ mod tests {
 
         //Then
         assert_eq!(order.meals.len(), 1);
-        assert_eq!(order.meals[&user], Meals::new_for_test(user.clone(), false));
+        assert_eq!(order.meals[&user], Meals::new(user.clone()));
         assert_eq!(order.status, OrderStatus::Open);
         assert_eq!(order.manager, manager);
     }
