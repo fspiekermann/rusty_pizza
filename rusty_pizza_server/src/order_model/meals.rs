@@ -48,9 +48,9 @@ impl Meals {
         return total_price;
     }
 
-    // pub fn calculate_change(&self) -> Money {
-
-    // }
+    pub fn calculate_change(&self) -> Money {
+        self.paid - self.calculate_total_price() - self.tip
+    }
 }
 
 #[cfg(test)]
@@ -130,7 +130,7 @@ mod tests {
     }
 
     #[rstest(prices, expected_total,
-        case(vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 33)], Money::new(15, 8)),
+        case(vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 33)], Money::new(15, 08)),
         case(vec![Money::new(3, 50), Money::new(4, 42)], Money::new(7, 92)),
     )]
     fn total_price_is_calculated_correctly(prices: Vec<Money>, expected_total: Money) {
@@ -150,7 +150,7 @@ mod tests {
     }
 
     #[rstest(prices, paid, tip, expected_change,
-        case(vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 33)], Money::new(20, 0), Money::new(2, 2), Money::new(2, 0)),
+        case(vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 33)], Money::new(20, 0), Money::new(2, 20), Money::new(2, 72)),
         case(vec![Money::new(3, 50), Money::new(4, 42)], Money::new(10, 50), Money::new(1, 50), Money::new(1, 8)),
     )]
     fn change_is_calculated_correctly(prices: Vec<Money>, paid: Money, tip: Money, expected_change: Money) {
