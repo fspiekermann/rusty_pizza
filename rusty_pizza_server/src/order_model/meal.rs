@@ -5,8 +5,18 @@ use std::collections::BTreeSet;
 pub struct MealFactory {}
 
 impl MealFactory {
-    fn new() -> MealFactory {
+    pub fn new() -> MealFactory {
         MealFactory {}
+    }
+
+    pub fn create_meal(&self, meal_id: String, variety: String, price: Money) -> Meal {
+        Meal {
+            id: 1,
+            meal_id,
+            variety,
+            price,
+            specials: BTreeSet::new(),
+        }
     }
 }
 
