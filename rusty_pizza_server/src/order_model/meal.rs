@@ -149,5 +149,17 @@ mod tests {
         // When:
         let meal =
             meal_factory.create_meal(String::from("03"), String::from("groß"), Money::new(5, 50));
+
+        // Then;
+        assert_eq!(
+            meal,
+            Meal {
+                id: 0,
+                meal_id: String::from("03"),
+                variety: String::from("groß"),
+                price: Money::new(5, 50),
+                specials: BTreeSet::new(),
+            }
+        );
     }
 }
