@@ -3,6 +3,8 @@ use std::collections::BTreeSet;
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Meal {
+    /// Unique ID of this meal
+    id: u32,
     /// Number of the meal in the menu
     meal_id: String,
     /// Size of the pizza or noodle type etc.
@@ -12,8 +14,9 @@ pub struct Meal {
 }
 
 impl Meal {
-    pub fn new(meal_id: String, variety: String, price: Money) -> Meal {
+    pub fn new(id: u32, meal_id: String, variety: String, price: Money) -> Meal {
         Meal {
+            id,
             meal_id,
             variety,
             price,
@@ -61,6 +64,7 @@ mod tests {
     fn special_can_be_added_to_meal() {
         //Given
         let mut meal = Meal {
+            id: 0,
             meal_id: String::from("03"),
             variety: String::from("groß"),
             price: Money::new(5, 50),
@@ -78,6 +82,7 @@ mod tests {
         assert_eq!(
             meal,
             Meal {
+                id: 0,
                 meal_id: String::from("03"),
                 variety: String::from("groß"),
                 price: Money::new(5, 50),
@@ -92,6 +97,7 @@ mod tests {
         let mut specials = BTreeSet::new();
         specials.insert(String::from("Käserand"));
         let mut meal = Meal {
+            id: 0,
             meal_id: String::from("03"),
             variety: String::from("groß"),
             price: Money::new(5, 50),
@@ -107,6 +113,7 @@ mod tests {
         assert_eq!(
             meal,
             Meal {
+                id: 0,
                 meal_id: String::from("03"),
                 variety: String::from("groß"),
                 price: Money::new(5, 50),

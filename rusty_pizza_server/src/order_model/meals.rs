@@ -60,7 +60,12 @@ mod tests {
         let user = Rc::new(User::new(String::from("Peter")));
         let mut meals = Meals::new(user.clone());
 
-        let meal = Meal::new(String::from("03"), String::from("groß"), Money::new(5, 50));
+        let meal = Meal::new(
+            0,
+            String::from("03"),
+            String::from("groß"),
+            Money::new(5, 50),
+        );
 
         //When
         meals.add_meal(meal);
@@ -68,7 +73,12 @@ mod tests {
         //Then
         let mut expected_meals = HashMap::new();
         expected_meals.insert(
-            Meal::new(String::from("03"), String::from("groß"), Money::new(5, 50)),
+            Meal::new(
+                0,
+                String::from("03"),
+                String::from("groß"),
+                Money::new(5, 50),
+            ),
             1,
         );
         assert_eq!(
