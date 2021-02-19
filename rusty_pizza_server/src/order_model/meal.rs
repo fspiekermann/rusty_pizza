@@ -135,5 +135,9 @@ mod tests {
     fn meal_can_be_created_through_factory() {
         // Given:
         let meal_factory = MealFactory::new();
+
+        // When:
+        let meal =
+            meal_factory.create_meal(String::from("03"), String::from("groß"), Money::new(5, 50));
     }
 }
