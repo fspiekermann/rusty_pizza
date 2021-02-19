@@ -11,7 +11,7 @@ impl MealFactory {
 
     pub fn create_meal(&self, meal_id: String, variety: String, price: Money) -> Meal {
         Meal {
-            id: 1,
+            id: 0,
             meal_id,
             variety,
             price,
