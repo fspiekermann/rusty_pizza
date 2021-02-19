@@ -1,7 +1,7 @@
 use crate::order_model::meal::Meal;
 use crate::order_model::user::User;
 use crate::util::money::Money;
-use std::collections::{BTreeSet, HashMap};
+use std::collections::HashMap;
 use std::rc::Rc;
 
 #[derive(Debug, PartialEq)]

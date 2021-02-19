@@ -1,8 +1,7 @@
 use crate::order_model::meals::Meals;
 use crate::order_model::user::User;
-use crate::util::money::Money;
 use std::collections::HashMap;
-use std::fmt::{self, Display, Formatter};
+use std::fmt;
 use std::rc::Rc;
 
 #[derive(Debug, PartialEq)]
