@@ -3,9 +3,9 @@ use crate::order_model::meals::Meals;
 use crate::order_model::user::User;
 use crate::util::money::Money;
 use std::collections::HashMap;
+use std::error;
 use std::fmt;
 use std::rc::Rc;
-use std::error;
 
 #[derive(Debug, PartialEq)]
 enum OrderStatus {
@@ -77,7 +77,7 @@ impl Order {
             Some(meals) => {
                 let meal = self.meal_factory.create_meal(meal_id, variety, price);
                 Ok(meals.add_meal(meal))
-            },
+            }
             None => Err(OrderError::UserNotParticipating),
         }
     }

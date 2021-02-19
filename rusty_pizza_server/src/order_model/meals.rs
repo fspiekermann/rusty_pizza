@@ -41,7 +41,7 @@ impl Meals {
     }
 
     pub fn calculate_total_price(&self) -> Money {
-        let mut total_price = Money::new(0,0);
+        let mut total_price = Money::new(0, 0);
         for (_, meal) in self.meals.iter() {
             total_price = total_price + meal.get_price();
         }
@@ -56,8 +56,8 @@ impl Meals {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rstest::rstest;
     use crate::order_model::meal::MealFactory;
+    use rstest::rstest;
 
     #[test]
     fn meals_can_be_created() {
@@ -140,7 +140,8 @@ mod tests {
         let mut meal_factory = MealFactory::new();
 
         for price in prices.into_iter() {
-            let meal = meal_factory.create_meal(String::from("XX"), String::from("something"), price);
+            let meal =
+                meal_factory.create_meal(String::from("XX"), String::from("something"), price);
             meals.add_meal(meal);
         }
         //When
@@ -153,7 +154,12 @@ mod tests {
         case(vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 33)], Money::new(20, 0), Money::new(2, 20), Money::new(2, 72)),
         case(vec![Money::new(3, 50), Money::new(4, 42)], Money::new(10, 50), Money::new(1, 50), Money::new(1, 8)),
     )]
-    fn change_is_calculated_correctly(prices: Vec<Money>, paid: Money, tip: Money, expected_change: Money) {
+    fn change_is_calculated_correctly(
+        prices: Vec<Money>,
+        paid: Money,
+        tip: Money,
+        expected_change: Money,
+    ) {
         //Given
         let user = Rc::new(User::new(String::from("Peter")));
         let mut meals = Meals::new(user.clone());
@@ -162,7 +168,8 @@ mod tests {
         let mut meal_factory = MealFactory::new();
 
         for price in prices.into_iter() {
-            let meal = meal_factory.create_meal(String::from("XX"), String::from("something"), price);
+            let meal =
+                meal_factory.create_meal(String::from("XX"), String::from("something"), price);
             meals.add_meal(meal);
         }
         //When
