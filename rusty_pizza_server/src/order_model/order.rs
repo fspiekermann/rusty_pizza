@@ -1,3 +1,4 @@
+use crate::util::money::Money;
 use crate::order_model::meals::Meals;
 use crate::order_model::user::User;
 use std::collections::HashMap;
@@ -90,5 +91,23 @@ mod tests {
     )]
     fn order_status_is_formatted_correctly(status: OrderStatus, expected: String) {
         assert_eq!(expected, status.to_string())
+    }
+
+    #[test]
+    fn meal_can_be_added_to_order_for_user() {
+        // Given:
+        let manager = Rc::new(User::new(String::from("Peter")));
+        let mut order = Order::new(manager.clone());
+
+        let user = Rc::new(User::new(String::from("Petra")));
+        order.add_user(user.clone());
+
+        // When:
+        let meal = order.add_meal_for_user(
+            user.clone(),
+            String::from("03"),
+            String::from("groß"),
+            Money::new(5, 50),
+        );
     }
 }

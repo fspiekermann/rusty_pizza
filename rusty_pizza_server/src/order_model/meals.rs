@@ -39,10 +39,10 @@ mod tests {
     fn meals_can_be_created() {
         // Given:
         let user = Rc::new(User::new(String::from("Peter")));
-        
+
         // When:
         let meals = Meals::new(user.clone());
-        
+
         // Then:
         assert_eq!(
             meals,
@@ -81,7 +81,7 @@ mod tests {
                 String::from("03"),
                 String::from("groß"),
                 Money::new(5, 50),
-            )
+            ),
         );
         assert_eq!(
             meals,
