@@ -35,6 +35,29 @@ mod tests {
     use super::*;
 
     #[test]
+    fn meal_can_be_created() {
+        // When:
+        let meal = Meal::new(
+            0,
+            String::from("03"),
+            String::from("groß"),
+            Money::new(5, 50),
+        );
+
+        // Then:
+        assert_eq!(
+            meal,
+            Meal {
+                id: 0,
+                meal_id: String::from("03"),
+                variety: String::from("groß"),
+                specials: BTreeSet::new(),
+                price: Money::new(5, 50),
+            }
+        );
+    }
+
+    #[test]
     fn special_can_be_added_to_meal() {
         //Given
         let mut meal = Meal {
