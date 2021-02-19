@@ -17,6 +17,7 @@ impl User {
 mod tests {
     use super::*;
 
+    #[test]
     fn user_can_be_created() {
         //Given
         let str_name = "Peter";
