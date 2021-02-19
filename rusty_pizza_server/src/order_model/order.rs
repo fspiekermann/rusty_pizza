@@ -1,6 +1,7 @@
-use crate::util::money::Money;
+use crate::order_model::meal::Meal;
 use crate::order_model::meals::Meals;
 use crate::order_model::user::User;
+use crate::util::money::Money;
 use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
@@ -39,6 +40,16 @@ impl Order {
         let meals = Meals::new(user.clone());
         self.meals.insert(user.clone(), meals);
         self.meals.get_mut(&user).unwrap()
+    }
+
+    pub fn add_meal_for_user(
+        &mut self,
+        user: Rc<User>,
+        meal_id: String,
+        variety: String,
+        price: Money,
+    ) -> Option<Meal> {
+        None
     }
 }
 
