@@ -61,8 +61,8 @@ impl Order {
         Ok(meals.add_meal(meal))
     }
 
-    pub fn get_meals_for_user(&self, user: Rc<User>) -> Option<&mut Meals> {
-        None
+    pub fn get_meals_for_user(&mut self, user: Rc<User>) -> Option<&mut Meals> {
+        self.meals.get_mut(&user)
     }
 }
 
@@ -147,7 +147,7 @@ mod tests {
     fn user_not_participating_in_order_has_no_meals() {
         // Given:
         let manager = Rc::new(User::new(String::from("Peter")));
-        let order = Order::new(manager.clone());
+        let mut order = Order::new(manager.clone());
 
         let user = Rc::new(User::new(String::from("Petra")));
 
