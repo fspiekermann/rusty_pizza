@@ -152,6 +152,27 @@ mod tests {
     }
 
     #[test]
+    fn meal_cannot_be_added_to_order_for_user_if_user_is_not_participating_in_order() {
+        // Given:
+        let manager = Rc::new(User::new(String::from("Peter")));
+        let mut order = Order::new(manager.clone());
+
+        let user = Rc::new(User::new(String::from("Petra")));
+
+        // When:
+        let meal = order.add_meal_for_user(
+            user.clone(),
+            String::from("03"),
+            String::from("groß"),
+            Money::new(5, 50),
+        );
+
+        // Then:
+        assert_eq!(meal, Err(OrderError::UserNotParticipating));
+        assert_eq!(order.get_meals_for_user(user), None);
+    }
+
+    #[test]
     fn user_not_participating_in_order_has_no_meals() {
         // Given:
         let manager = Rc::new(User::new(String::from("Peter")));
