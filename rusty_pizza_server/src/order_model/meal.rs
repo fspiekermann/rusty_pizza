@@ -121,4 +121,10 @@ mod tests {
             }
         );
     }
+
+    #[test]
+    fn meal_can_be_created_through_factory() {
+        // Given:
+        let meal_factory = MealFactory::new();
+    }
 }
