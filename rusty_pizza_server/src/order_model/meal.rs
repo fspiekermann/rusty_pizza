@@ -1,17 +1,21 @@
+use crate::util::id_provider::IdProvider;
 use crate::util::money::Money;
 use std::collections::BTreeSet;
 
-#[derive(Debug)]
-pub struct MealFactory {}
+pub struct MealFactory {
+    id_provider: IdProvider,
+}
 
 impl MealFactory {
     pub fn new() -> MealFactory {
-        MealFactory {}
+        MealFactory {
+            id_provider: IdProvider::new(),
+        }
     }
 
-    pub fn create_meal(&self, meal_id: String, variety: String, price: Money) -> Meal {
+    pub fn create_meal(&mut self, meal_id: String, variety: String, price: Money) -> Meal {
         Meal {
-            id: 0,
+            id: self.id_provider.generate_next(),
             meal_id,
             variety,
             price,
@@ -148,7 +152,7 @@ mod tests {
     #[test]
     fn meal_can_be_created_through_factory() {
         // Given:
-        let meal_factory = MealFactory::new();
+        let mut meal_factory = MealFactory::new();
 
         // When:
         let meal =
@@ -170,7 +174,7 @@ mod tests {
     #[test]
     fn meals_created_through_factory_have_unique_ids() {
         // Given:
-        let meal_factory = MealFactory::new();
+        let mut meal_factory = MealFactory::new();
 
         // When:
         let meal1_id = meal_factory
