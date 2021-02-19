@@ -59,6 +59,10 @@ impl Meal {
     pub fn remove_special(&mut self, special: &String) {
         self.specials.remove(special);
     }
+
+    pub fn get_price(&self) -> Money {
+        self.price
+    }
 }
 
 #[cfg(test)]
