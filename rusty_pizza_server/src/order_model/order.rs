@@ -130,7 +130,7 @@ mod tests {
         // Then:
         assert_eq!(
             meal,
-            Ok(Meal::new(
+            Ok(&mut Meal::new(
                 0,
                 String::from("03"),
                 String::from("groß"),
