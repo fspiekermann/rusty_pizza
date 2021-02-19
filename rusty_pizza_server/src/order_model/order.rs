@@ -53,11 +53,7 @@ impl Order {
         price: Money,
     ) -> Result<&mut Meal, Infallible> {
         let meals = self.meals.get_mut(&user).unwrap();
-        let meal = self.meal_factory.create_meal(
-            String::from("03"),
-            String::from("groß"),
-            Money::new(5, 50),
-        );
+        let meal = self.meal_factory.create_meal(meal_id, variety, price);
         Ok(meals.add_meal(meal))
     }
 
