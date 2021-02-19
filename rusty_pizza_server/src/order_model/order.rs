@@ -153,5 +153,8 @@ mod tests {
 
         // When:
         let meals = order.get_meals_for_user(user);
+
+        // Then:
+        assert_eq!(meals, None);
     }
 }
