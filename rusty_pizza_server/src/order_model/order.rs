@@ -60,6 +60,10 @@ impl Order {
         );
         Ok(meals.add_meal(meal))
     }
+
+    pub fn get_meals_for_user(&self, user: Rc<User>) -> Option<&mut Meals> {
+        None
+    }
 }
 
 #[cfg(test)]
