@@ -43,6 +43,10 @@ impl Meal {
         }
     }
 
+    pub fn get_id(&self) -> u32 {
+        self.id
+    }
+
     pub fn add_special(&mut self, special: String) {
         self.specials.insert(special);
     }
@@ -169,10 +173,12 @@ mod tests {
         let meal_factory = MealFactory::new();
 
         // When:
-        let meal1_id =
-            meal_factory.create_meal(String::from("03"), String::from("groß"), Money::new(5, 50)).get_id();
-        let meal2_id =
-            meal_factory.create_meal(String::from("03"), String::from("groß"), Money::new(5, 50)).get_id();
+        let meal1_id = meal_factory
+            .create_meal(String::from("03"), String::from("groß"), Money::new(5, 50))
+            .get_id();
+        let meal2_id = meal_factory
+            .create_meal(String::from("03"), String::from("groß"), Money::new(5, 50))
+            .get_id();
 
         // Then;
         assert!(meal1_id != meal2_id);
