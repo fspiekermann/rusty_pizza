@@ -138,4 +138,16 @@ mod tests {
         // Then:
         assert_eq!(meal, Ok(&mut Meal::new(0, meal_id, variety, price)));
     }
+
+    #[test]
+    fn user_not_participating_in_order_has_no_meals() {
+        // Given:
+        let manager = Rc::new(User::new(String::from("Peter")));
+        let order = Order::new(manager.clone());
+
+        let user = Rc::new(User::new(String::from("Petra")));
+
+        // When:
+        let meals = order.get_meals_for_user(user);
+    }
 }
