@@ -1,3 +1,4 @@
+#[derive(Debug, PartialEq)]
 pub struct IdProvider {
     next_id: u32,
 }

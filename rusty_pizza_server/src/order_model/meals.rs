@@ -26,8 +26,10 @@ impl Meals {
         }
     }
 
-    pub fn add_meal(&mut self, meal: Meal) {
-        self.meals.insert(meal.get_id(), meal);
+    pub fn add_meal(&mut self, meal: Meal) -> &mut Meal {
+        let id = meal.get_id();
+        self.meals.insert(id, meal);
+        self.meals.get_mut(&id).unwrap()
     }
 }
 
@@ -70,9 +72,19 @@ mod tests {
         );
 
         // When:
-        meals.add_meal(meal);
+        let added = meals.add_meal(meal);
 
         // Then:
+        assert_eq!(
+            added,
+            &Meal::new(
+                0,
+                String::from("03"),
+                String::from("groß"),
+                Money::new(5, 50),
+            )
+        );
+
         let mut expected_meals = HashMap::new();
         expected_meals.insert(
             0,

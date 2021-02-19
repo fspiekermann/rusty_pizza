@@ -1,4 +1,4 @@
-use crate::order_model::meal::Meal;
+use crate::order_model::meal::{Meal, MealFactory};
 use crate::order_model::meals::Meals;
 use crate::order_model::user::User;
 use crate::util::money::Money;
@@ -26,6 +26,7 @@ pub struct Order {
     meals: HashMap<Rc<User>, Meals>,
     status: OrderStatus,
     manager: Rc<User>,
+    meal_factory: MealFactory,
 }
 
 impl Order {
@@ -34,6 +35,7 @@ impl Order {
             meals: HashMap::new(),
             status: OrderStatus::Open,
             manager,
+            meal_factory: MealFactory::new(),
         }
     }
 
@@ -49,13 +51,14 @@ impl Order {
         meal_id: String,
         variety: String,
         price: Money,
-    ) -> Result<Meal, Infallible> {
-        Ok(Meal::new(
-            0,
+    ) -> Result<&mut Meal, Infallible> {
+        let meals = self.meals.get_mut(&user).unwrap();
+        let meal = self.meal_factory.create_meal(
             String::from("03"),
             String::from("groß"),
             Money::new(5, 50),
-        ))
+        );
+        Ok(meals.add_meal(meal))
     }
 }
 

@@ -2,6 +2,7 @@ use crate::util::id_provider::IdProvider;
 use crate::util::money::Money;
 use std::collections::BTreeSet;
 
+#[derive(Debug, PartialEq)]
 pub struct MealFactory {
     id_provider: IdProvider,
 }
