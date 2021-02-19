@@ -12,10 +12,6 @@ pub struct Meal {
 }
 
 impl Meal {
-    pub fn add_special(&mut self, special: String) {
-        self.specials.insert(special);
-    }
-
     pub fn new(meal_id: String, variety: String, price: Money) -> Meal {
         Meal {
             meal_id,
@@ -23,6 +19,10 @@ impl Meal {
             price,
             specials: BTreeSet::new(),
         }
+    }
+
+    pub fn add_special(&mut self, special: String) {
+        self.specials.insert(special);
     }
 
     pub fn remove_special(&mut self, special: &String) {
