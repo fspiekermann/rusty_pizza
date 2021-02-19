@@ -3,9 +3,9 @@ use crate::order_model::meals::Meals;
 use crate::order_model::user::User;
 use crate::util::money::Money;
 use std::collections::HashMap;
-use std::convert::Infallible;
 use std::fmt;
 use std::rc::Rc;
+use std::error;
 
 #[derive(Debug, PartialEq)]
 enum OrderStatus {
@@ -18,6 +18,27 @@ enum OrderStatus {
 impl fmt::Display for OrderStatus {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}", self)
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum OrderError {
+    UserNotParticipating,
+}
+
+impl fmt::Display for OrderError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            OrderError::UserNotParticipating => write!(f, "user is not participating in order"),
+        }
+    }
+}
+
+impl error::Error for OrderError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match *self {
+            OrderError::UserNotParticipating => None,
+        }
     }
 }
 
@@ -51,10 +72,14 @@ impl Order {
         meal_id: String,
         variety: String,
         price: Money,
-    ) -> Result<&mut Meal, Infallible> {
-        let meals = self.meals.get_mut(&user).unwrap();
-        let meal = self.meal_factory.create_meal(meal_id, variety, price);
-        Ok(meals.add_meal(meal))
+    ) -> Result<&mut Meal, OrderError> {
+        match self.meals.get_mut(&user) {
+            Some(meals) => {
+                let meal = self.meal_factory.create_meal(meal_id, variety, price);
+                Ok(meals.add_meal(meal))
+            },
+            None => Err(OrderError::UserNotParticipating),
+        }
     }
 
     pub fn get_meals_for_user(&mut self, user: Rc<User>) -> Option<&mut Meals> {
