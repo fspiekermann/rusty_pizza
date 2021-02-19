@@ -6,8 +6,8 @@ use std::rc::Rc;
 
 #[derive(Debug, PartialEq)]
 pub struct Meals {
-    /// Meal and quantity
-    meals: HashMap<Meal, i32>,
+    /// Meal by unique ID
+    meals: HashMap<u32, Meal>,
     owner: Rc<User>,
     /// Whether the meals selection has been completed
     ready: bool,
@@ -27,7 +27,7 @@ impl Meals {
     }
 
     pub fn add_meal(&mut self, meal: Meal) {
-        self.meals.insert(meal, 1);
+        self.meals.insert(meal.get_id(), meal);
     }
 }
 
@@ -37,11 +37,13 @@ mod tests {
 
     #[test]
     fn meals_can_be_created() {
-        //Given
+        // Given:
         let user = Rc::new(User::new(String::from("Peter")));
-        //When
+        
+        // When:
         let meals = Meals::new(user.clone());
-        //Then
+        
+        // Then:
         assert_eq!(
             meals,
             Meals {
@@ -56,7 +58,7 @@ mod tests {
 
     #[test]
     fn meal_can_be_added_to_meals() {
-        //Given
+        // Given:
         let user = Rc::new(User::new(String::from("Peter")));
         let mut meals = Meals::new(user.clone());
 
@@ -67,19 +69,19 @@ mod tests {
             Money::new(5, 50),
         );
 
-        //When
+        // When:
         meals.add_meal(meal);
 
-        //Then
+        // Then:
         let mut expected_meals = HashMap::new();
         expected_meals.insert(
+            0,
             Meal::new(
                 0,
                 String::from("03"),
                 String::from("groß"),
                 Money::new(5, 50),
-            ),
-            1,
+            )
         );
         assert_eq!(
             meals,
