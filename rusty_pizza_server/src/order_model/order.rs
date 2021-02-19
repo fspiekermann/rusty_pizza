@@ -120,5 +120,16 @@ mod tests {
             String::from("groß"),
             Money::new(5, 50),
         );
+
+        // Then:
+        assert_eq!(
+            meal,
+            Ok(Meal::new(
+                0,
+                String::from("03"),
+                String::from("groß"),
+                Money::new(5, 50)
+            ))
+        );
     }
 }
