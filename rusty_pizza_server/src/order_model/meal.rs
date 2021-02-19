@@ -1,6 +1,15 @@
 use crate::util::money::Money;
 use std::collections::BTreeSet;
 
+#[derive(Debug)]
+pub struct MealFactory {}
+
+impl MealFactory {
+    fn new() -> MealFactory {
+        MealFactory {}
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Meal {
     /// Unique ID of this meal
