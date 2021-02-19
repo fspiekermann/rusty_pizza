@@ -158,7 +158,7 @@ mod tests {
         let meal =
             meal_factory.create_meal(String::from("03"), String::from("groß"), Money::new(5, 50));
 
-        // Then;
+        // Then:
         assert_eq!(
             meal,
             Meal {
@@ -184,7 +184,7 @@ mod tests {
             .create_meal(String::from("03"), String::from("groß"), Money::new(5, 50))
             .get_id();
 
-        // Then;
+        // Then:
         assert!(meal1_id != meal2_id);
     }
 }
