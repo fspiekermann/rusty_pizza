@@ -121,7 +121,8 @@ mod tests {
         meal_id,
         variety,
         price,
-        case(String::from("03"), String::from("groß"), Money::new(5, 50))
+        case(String::from("03"), String::from("groß"), Money::new(5, 50)),
+        case(String::from("04"), String::from("riesig"), Money::new(7, 20))
     )]
     fn meal_can_be_added_to_order_for_user(meal_id: String, variety: String, price: Money) {
         // Given:
