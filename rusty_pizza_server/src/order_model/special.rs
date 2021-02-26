@@ -1,6 +1,6 @@
 use crate::util::id_provider::IdProvider;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct SpecialFactory {
     id_provider: IdProvider,
 }
