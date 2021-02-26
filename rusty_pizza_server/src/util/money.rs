@@ -1,5 +1,5 @@
 use std::fmt::{self, Display, Formatter};
-use std::ops::{Add, AddAssign, Mul, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 pub struct Money {
@@ -84,6 +84,14 @@ impl Mul<Money> for u8 {
 
     fn mul(self, other: Money) -> Money {
         other * self
+    }
+}
+
+impl MulAssign<u8> for Money {
+    fn mul_assign(&mut self, other: u8) {
+        *self = Self {
+            cents: self.cents * other as u32,
+        }
     }
 }
 
@@ -345,5 +353,17 @@ mod tests {
 
         // Then:
         assert_eq!(minuend, difference)
+    }
+
+    #[rstest(money, factor, product,
+        case(Money::new(5, 0), 2u8, Money { cents: 1000 }),
+        case(Money::new(2, 5), 3u8, Money { cents: 615 }),
+    )]
+    fn money_can_be_mul_assigned_with_u8(mut money: Money, factor: u8, product: Money) {
+        // When:
+        money *= factor;
+
+        // Then:
+        assert_eq!(money, product);
     }
 }
