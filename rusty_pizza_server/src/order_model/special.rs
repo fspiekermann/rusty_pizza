@@ -1,13 +1,22 @@
+use crate::util::id_provider::IdProvider;
+
 #[derive(Debug, PartialEq)]
-pub struct SpecialFactory {}
+pub struct SpecialFactory {
+    id_provider: IdProvider,
+}
 
 impl SpecialFactory {
     pub fn new() -> SpecialFactory {
-        SpecialFactory {}
+        SpecialFactory {
+            id_provider: IdProvider::new(),
+        }
     }
 
     pub fn create_special(&mut self, description: String) -> Special {
-        Special { id: 0, description }
+        Special {
+            id: self.id_provider.generate_next(),
+            description,
+        }
     }
 }
 
@@ -70,6 +79,14 @@ mod tests {
         let mut special_factory = SpecialFactory::new();
 
         // When:
-        let special1_id = special_factory.create_special(String::from("Käserand")).get_id();
+        let special1_id = special_factory
+            .create_special(String::from("Käserand"))
+            .get_id();
+        let special2_id = special_factory
+            .create_special(String::from("Käserand"))
+            .get_id();
+
+        // Then:
+        assert!(special1_id != special2_id);
     }
 }
