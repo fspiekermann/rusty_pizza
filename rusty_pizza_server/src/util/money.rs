@@ -1,5 +1,5 @@
 use std::fmt::{self, Display, Formatter};
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 pub struct Money {
@@ -43,11 +43,27 @@ impl Add for Money {
     }
 }
 
+impl AddAssign for Money {
+    fn add_assign(&mut self, other: Self) {
+        *self = Self {
+            cents: self.cents + other.cents,
+        }
+    }
+}
+
 impl Sub for Money {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self {
         Self {
+            cents: self.cents - other.cents,
+        }
+    }
+}
+
+impl SubAssign for Money {
+    fn sub_assign(&mut self, other: Self) {
+        *self = Self {
             cents: self.cents - other.cents,
         }
     }
@@ -71,6 +87,14 @@ impl Mul<Money> for u8 {
     }
 }
 
+impl MulAssign<u8> for Money {
+    fn mul_assign(&mut self, other: u8) {
+        *self = Self {
+            cents: self.cents * other as u32,
+        }
+    }
+}
+
 impl Mul<u16> for Money {
     type Output = Self;
 
@@ -89,6 +113,14 @@ impl Mul<Money> for u16 {
     }
 }
 
+impl MulAssign<u16> for Money {
+    fn mul_assign(&mut self, other: u16) {
+        *self = Self {
+            cents: self.cents * other as u32,
+        }
+    }
+}
+
 impl Mul<u32> for Money {
     type Output = Self;
 
@@ -104,6 +136,14 @@ impl Mul<Money> for u32 {
 
     fn mul(self, other: Money) -> Money {
         other * self
+    }
+}
+
+impl MulAssign<u32> for Money {
+    fn mul_assign(&mut self, other: u32) {
+        *self = Self {
+            cents: self.cents * other,
+        }
     }
 }
 
@@ -302,5 +342,68 @@ mod tests {
 
         // Then:
         assert_eq!(result, expected);
+    }
+
+    #[rstest(
+        addend1,
+        addend2,
+        sum,
+        case(Money::new(7, 20), Money::new(5, 50), Money { cents: 1270 }),
+        case(Money::new(8, 21), Money::new(4, 55), Money { cents: 1276 }),
+    )]
+    fn money_can_be_add_assigned(mut addend1: Money, addend2: Money, sum: Money) {
+        // When:
+        addend1 += addend2;
+
+        // Then:
+        assert_eq!(addend1, sum);
+    }
+
+    #[rstest(minuend, subtrahent, difference,
+        case(Money::new(7, 20), Money::new(5, 50), Money { cents: 170 }),
+        case(Money::new(7, 20), Money::new(5, 55), Money { cents: 165 }),
+    )]
+    fn money_can_be_sub_assigned(mut minuend: Money, subtrahent: Money, difference: Money) {
+        // When:
+        minuend -= subtrahent;
+
+        // Then:
+        assert_eq!(minuend, difference)
+    }
+
+    #[rstest(money, factor, product,
+        case(Money::new(5, 0), 2u8, Money { cents: 1000 }),
+        case(Money::new(2, 5), 3u8, Money { cents: 615 }),
+    )]
+    fn money_can_be_mul_assigned_with_u8(mut money: Money, factor: u8, product: Money) {
+        // When:
+        money *= factor;
+
+        // Then:
+        assert_eq!(money, product);
+    }
+
+    #[rstest(money, factor, product,
+        case(Money::new(5, 0), 2u16, Money { cents: 1000 }),
+        case(Money::new(2, 5), 3u16, Money { cents: 615 }),
+    )]
+    fn money_can_be_mul_assigned_with_u16(mut money: Money, factor: u16, product: Money) {
+        // When:
+        money *= factor;
+
+        // Then:
+        assert_eq!(money, product);
+    }
+
+    #[rstest(money, factor, product,
+        case(Money::new(5, 0), 2, Money { cents: 1000 }),
+        case(Money::new(2, 5), 3, Money { cents: 615 }),
+    )]
+    fn money_can_be_mul_assigned_with_u32(mut money: Money, factor: u32, product: Money) {
+        // When:
+        money *= factor;
+
+        // Then:
+        assert_eq!(money, product);
     }
 }
