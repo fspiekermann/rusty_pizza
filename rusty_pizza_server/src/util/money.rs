@@ -1,5 +1,5 @@
 use std::fmt::{self, Display, Formatter};
-use std::ops::{Add, AddAssign, Mul, Sub};
+use std::ops::{Add, AddAssign, Mul, Sub, SubAssign};
 
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 pub struct Money {
@@ -56,6 +56,14 @@ impl Sub for Money {
 
     fn sub(self, other: Self) -> Self {
         Self {
+            cents: self.cents - other.cents,
+        }
+    }
+}
+
+impl SubAssign for Money {
+    fn sub_assign(&mut self, other: Self) {
+        *self = Self {
             cents: self.cents - other.cents,
         }
     }
@@ -325,5 +333,17 @@ mod tests {
 
         // Then:
         assert_eq!(addend1, sum);
+    }
+
+    #[rstest(minuend, subtrahent, difference,
+        case(Money::new(7, 20), Money::new(5, 50), Money { cents: 170 }),
+        case(Money::new(7, 20), Money::new(5, 55), Money { cents: 165 }),
+    )]
+    fn money_can_be_sub_assigned(mut minuend: Money, subtrahent: Money, difference: Money) {
+        // When:
+        minuend -= subtrahent;
+
+        // Then:
+        assert_eq!(minuend, difference)
     }
 }
