@@ -61,7 +61,7 @@ impl Meal {
     }
 
     pub fn get_price(&self) -> Money {
-        self.price
+        self.price.clone()
     }
 }
 

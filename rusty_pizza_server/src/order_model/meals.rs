@@ -42,14 +42,18 @@ impl Meals {
 
     pub fn calculate_total_price(&self) -> Money {
         let mut total_price = Money::new(0, 0);
-        for (_, meal) in self.meals.iter() {
+        for meal in self.meals.values() {
             total_price = total_price + meal.get_price();
         }
         return total_price;
     }
 
-    pub fn calculate_change(&self) -> Money {
-        self.paid - self.calculate_total_price() - self.tip
+    pub fn calculate_change(&self) -> Result<Money,String> {
+        let has_to_pay = self.calculate_total_price() + self.tip;
+        if self.paid.get_total_cents() < has_to_pay.get_total_cents() {
+            return Err("The calculated Change will be negative".to_string());
+        }
+        return Ok(self.paid - has_to_pay);
     }
 }
 
@@ -136,7 +140,7 @@ mod tests {
     fn total_price_is_calculated_correctly(prices: Vec<Money>, expected_total: Money) {
         //Given
         let user = Rc::new(User::new(String::from("Peter")));
-        let mut meals = Meals::new(user.clone());
+        let mut meals = Meals::new(user);
         let mut meal_factory = MealFactory::new();
 
         for price in prices.into_iter() {
@@ -154,7 +158,7 @@ mod tests {
         case(vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 33)], Money::new(20, 0), Money::new(2, 20), Money::new(2, 72)),
         case(vec![Money::new(3, 50), Money::new(4, 42)], Money::new(10, 50), Money::new(1, 50), Money::new(1, 8)),
     )]
-    fn change_is_calculated_correctly(
+    fn positve_change_is_calculated_correctly(
         prices: Vec<Money>,
         paid: Money,
         tip: Money,
@@ -162,7 +166,7 @@ mod tests {
     ) {
         //Given
         let user = Rc::new(User::new(String::from("Peter")));
-        let mut meals = Meals::new(user.clone());
+        let mut meals = Meals::new(user);
         meals.set_paid(paid);
         meals.set_tip(tip);
         let mut meal_factory = MealFactory::new();
@@ -173,8 +177,36 @@ mod tests {
             meals.add_meal(meal);
         }
         //When
-        let calculated_change = meals.calculate_change();
+        let calculated_change = meals.calculate_change().unwrap();
         //Then
         assert_eq!(expected_change, calculated_change);
+    }
+
+    #[rstest(prices, paid, tip,
+        case(vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 33)], Money::new(15, 0), Money::new(2, 20)),
+        case(vec![Money::new(3, 50), Money::new(4, 42)], Money::new(7, 50), Money::new(1, 50)),
+    )]
+    #[should_panic]
+    fn negative_change_results_in_error(
+        prices: Vec<Money>,
+        paid: Money,
+        tip: Money,
+    ) {
+        //Given
+        let user = Rc::new(User::new(String::from("Peter")));
+        let mut meals = Meals::new(user);
+        meals.set_paid(paid);
+        meals.set_tip(tip);
+        let mut meal_factory = MealFactory::new();
+
+        for price in prices.into_iter() {
+            let meal =
+                meal_factory.create_meal(String::from("XX"), String::from("something"), price);
+            meals.add_meal(meal);
+        }
+        //When
+        meals.calculate_change().unwrap(); //should panic
+        //Then
+        assert!(false)
     }
 }
