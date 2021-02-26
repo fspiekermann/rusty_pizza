@@ -1,3 +1,14 @@
+#[derive(Debug, PartialEq)]
+pub struct SpecialFactory {
+
+}
+
+impl SpecialFactory {
+    pub fn new() -> SpecialFactory {
+        SpecialFactory { }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Special {
     id: u32,
@@ -27,5 +38,11 @@ mod tests {
                 description: String::from("Käserand")
             }
         );
+    }
+
+    #[test]
+    fn special_can_be_created_through_factory() {
+        // Given:
+        let mut special_factory = SpecialFactory::new();
     }
 }
