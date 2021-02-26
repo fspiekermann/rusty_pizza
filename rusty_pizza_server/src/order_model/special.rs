@@ -13,10 +13,7 @@ impl SpecialFactory {
     }
 
     pub fn create_special(&mut self, description: String) -> Special {
-        Special {
-            id: self.id_provider.generate_next(),
-            description,
-        }
+        Special::new(self.id_provider.generate_next(), description)
     }
 }
 
