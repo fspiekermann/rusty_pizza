@@ -1,11 +1,13 @@
 #[derive(Debug, PartialEq)]
-pub struct SpecialFactory {
-
-}
+pub struct SpecialFactory {}
 
 impl SpecialFactory {
     pub fn new() -> SpecialFactory {
-        SpecialFactory { }
+        SpecialFactory {}
+    }
+
+    pub fn create_special(&mut self, description: String) -> Special {
+        Special { id: 0, description }
     }
 }
 
@@ -44,5 +46,17 @@ mod tests {
     fn special_can_be_created_through_factory() {
         // Given:
         let mut special_factory = SpecialFactory::new();
+
+        // When:
+        let special = special_factory.create_special(String::from("Käserand"));
+
+        // Then:
+        assert_eq!(
+            special,
+            Special {
+                id: 0,
+                description: String::from("Käserand")
+            }
+        );
     }
 }
