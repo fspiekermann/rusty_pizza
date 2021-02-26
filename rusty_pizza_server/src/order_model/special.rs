@@ -20,7 +20,7 @@ impl SpecialFactory {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Special {
     id: u32,
     description: String,

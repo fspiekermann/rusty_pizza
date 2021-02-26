@@ -53,8 +53,10 @@ impl Meal {
         self.id
     }
 
-    pub fn add_special(&mut self, special: String) {
-        self.specials.insert(Special::new(0, special));
+    pub fn add_special(&mut self, description: String) -> &Special {
+        let special = Special::new(0, description);
+        self.specials.insert(special.clone());
+        self.specials.get(&special).unwrap()
     }
 
     pub fn remove_special(&mut self, special: &Special) {
@@ -104,12 +106,12 @@ mod tests {
             specials: BTreeSet::new(),
         };
 
-        let special = String::from("Käserand");
-
         //When
-        meal.add_special(special);
+        let special = meal.add_special(String::from("Käserand"));
 
         //Then
+        assert_eq!(special, &Special::new(0, String::from("Käserand")));
+        
         let mut expected_specials = BTreeSet::new();
         expected_specials.insert(Special::new(0, String::from("Käserand")));
         assert_eq!(
