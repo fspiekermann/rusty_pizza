@@ -16,14 +16,7 @@ impl MealFactory {
     }
 
     pub fn create_meal(&mut self, meal_id: String, variety: String, price: Money) -> Meal {
-        Meal {
-            id: self.id_provider.generate_next(),
-            meal_id,
-            variety,
-            price,
-            specials: BTreeSet::new(),
-            special_factory: SpecialFactory::new(),
-        }
+        Meal::new(self.id_provider.generate_next(), meal_id, variety, price)
     }
 }
 
