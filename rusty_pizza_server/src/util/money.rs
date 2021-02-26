@@ -139,6 +139,14 @@ impl Mul<Money> for u32 {
     }
 }
 
+impl MulAssign<u32> for Money {
+    fn mul_assign(&mut self, other: u32) {
+        *self = Self {
+            cents: self.cents * other,
+        }
+    }
+}
+
 impl Display for Money {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "{},{}€", self.get_euros(), self.get_cents())
@@ -380,6 +388,18 @@ mod tests {
         case(Money::new(2, 5), 3u16, Money { cents: 615 }),
     )]
     fn money_can_be_mul_assigned_with_u16(mut money: Money, factor: u16, product: Money) {
+        // When:
+        money *= factor;
+
+        // Then:
+        assert_eq!(money, product);
+    }
+
+    #[rstest(money, factor, product,
+        case(Money::new(5, 0), 2, Money { cents: 1000 }),
+        case(Money::new(2, 5), 3, Money { cents: 615 }),
+    )]
+    fn money_can_be_mul_assigned_with_u32(mut money: Money, factor: u32, product: Money) {
         // When:
         money *= factor;
 
