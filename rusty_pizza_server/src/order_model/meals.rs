@@ -78,17 +78,14 @@ impl Meals {
         }
         return Ok(self.paid - has_to_pay);
     pub fn remove_meal(&mut self, meal: Meal) -> bool {
-        // let id = meal.get_id();
-        // self.meals.insert(id, meal);
-        // self.meals.get_mut(&id).unwrap()
-        return false;
+        match self.meals.remove(&meal.get_id()) {
+            Some(_) => return true,
+            None => return false,
+        }
     }
 
     pub fn remove_meal_by_id(&mut self, id: u32) -> Option<Meal> {
-        // let id = meal.get_id();
-        // self.meals.insert(id, meal);
-        // self.meals.get_mut(&id).unwrap()
-        return false;
+        self.meals.remove(&id)
     }
 }
 
@@ -249,7 +246,11 @@ mod tests {
         case(Meal::new(1, String::from("35"), String::from("Spaghetti"), Money::new(4, 35)), true, 1),
         case(Meal::new(2, String::from("42"), String::from("Kräuterbutter"), Money::new(2, 25)), false, 2),
     )]
-    fn meal_can_be_removed_from_meals(to_remove: Meal, expected_result: bool, remaining_length: u32) {
+    fn meal_can_be_removed_from_meals(
+        to_remove: Meal,
+        expected_result: bool,
+        remaining_length: usize,
+    ) {
         // Given:
         let user = Rc::new(User::new(String::from("Peter")));
         let mut meals = Meals::new(user.clone());
@@ -267,21 +268,36 @@ mod tests {
             Money::new(4, 35),
         );
 
-        let added = meals.add_meal(meal_1);
-        let added = meals.add_meal(meal_2);
+        meals.add_meal(meal_1);
+        meals.add_meal(meal_2);
         // When:
-        let removed = meals.remove_meal(to_remove)
+        let removed = meals.remove_meal(to_remove);
         // Then:
-        assert_eq!(expected_result, removed)
-        assert_eq!(remaining_length, meals.meal.len())
+        assert_eq!(expected_result, removed);
+        assert_eq!(remaining_length, meals.meals.len());
     }
 
-    #[rstest(id, expected_removed, remaining_length
-        case(0, Some(Meal::new(0, String::from("03"), String::from("groß"), Money::new(5, 50))), 1),
-        case(1, Some(Meal::new(1, String::from("35"), String::from("Spaghetti"), Money::new(4, 35))), 1),
-        case(2, None, 2),
+    #[rstest(
+        id,
+        expected_removed,
+        remaining_length,
+        case(
+            0,
+            Some(Meal::new(0, String::from("03"), String::from("groß"), Money::new(5, 50))),
+            1
+        ),
+        case(
+            1,
+            Some(Meal::new(1, String::from("35"), String::from("Spaghetti"), Money::new(4, 35))),
+            1
+        ),
+        case(2, None, 2)
     )]
-    fn meal_can_be_removed_from_meals_by_id(id: u32, expected_removed: Option<Meal>, , remaining_length: u32) {
+    fn meal_can_be_removed_from_meals_by_id(
+        id: u32,
+        expected_removed: Option<Meal>,
+        remaining_length: usize,
+    ) {
         // Given:
         let user = Rc::new(User::new(String::from("Peter")));
         let mut meals = Meals::new(user.clone());
@@ -299,12 +315,12 @@ mod tests {
             Money::new(4, 35),
         );
 
-        let added = meals.add_meal(meal_1);
-        let added = meals.add_meal(meal_2);
+        meals.add_meal(meal_1);
+        meals.add_meal(meal_2);
         // When:
-        let removed_meal = meals.remove_meal_by_id(id)
+        let removed_meal = meals.remove_meal_by_id(id);
         // Then:
-        assert_eq!(expected_removed, removed_meal)
-        assert_eq!(remaining_length, meals.meal.len())
+        assert_eq!(expected_removed, removed_meal);
+        assert_eq!(remaining_length, meals.meals.len());
     }
 }
