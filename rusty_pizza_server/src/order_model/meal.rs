@@ -1,3 +1,4 @@
+use crate::order_model::special::Special;
 use crate::util::id_provider::IdProvider;
 use crate::util::money::Money;
 use std::collections::BTreeSet;
@@ -33,7 +34,7 @@ pub struct Meal {
     meal_id: String,
     /// Size of the pizza or noodle type etc.
     variety: String,
-    specials: BTreeSet<String>,
+    specials: BTreeSet<Special>,
     price: Money,
 }
 
@@ -53,10 +54,10 @@ impl Meal {
     }
 
     pub fn add_special(&mut self, special: String) {
-        self.specials.insert(special);
+        self.specials.insert(Special::new(0, special));
     }
 
-    pub fn remove_special(&mut self, special: &String) {
+    pub fn remove_special(&mut self, special: &Special) {
         self.specials.remove(special);
     }
 
@@ -110,7 +111,7 @@ mod tests {
 
         //Then
         let mut expected_specials = BTreeSet::new();
-        expected_specials.insert(String::from("Käserand"));
+        expected_specials.insert(Special::new(0, String::from("Käserand")));
         assert_eq!(
             meal,
             Meal {
@@ -127,7 +128,7 @@ mod tests {
     fn special_can_be_removed_from_meal() {
         //Given
         let mut specials = BTreeSet::new();
-        specials.insert(String::from("Käserand"));
+        specials.insert(Special::new(0, String::from("Käserand")));
         let mut meal = Meal {
             id: 0,
             meal_id: String::from("03"),
@@ -136,7 +137,7 @@ mod tests {
             specials,
         };
 
-        let special = String::from("Käserand");
+        let special = Special::new(0, String::from("Käserand"));
 
         //When
         meal.remove_special(&special);
