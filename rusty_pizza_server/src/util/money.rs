@@ -1,5 +1,5 @@
 use std::fmt::{self, Display, Formatter};
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, AddAssign, Mul, Sub};
 
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 pub struct Money {
@@ -38,6 +38,14 @@ impl Add for Money {
 
     fn add(self, other: Self) -> Self {
         Self {
+            cents: self.cents + other.cents,
+        }
+    }
+}
+
+impl AddAssign for Money {
+    fn add_assign(&mut self, other: Self) {
+        *self = Self {
             cents: self.cents + other.cents,
         }
     }
@@ -302,5 +310,20 @@ mod tests {
 
         // Then:
         assert_eq!(result, expected);
+    }
+
+    #[rstest(
+        addend1,
+        addend2,
+        sum,
+        case(Money::new(7, 20), Money::new(5, 50), Money { cents: 1270 }),
+        case(Money::new(8, 21), Money::new(4, 55), Money { cents: 1276 }),
+    )]
+    fn money_can_be_add_assigned(mut addend1: Money, addend2: Money, sum: Money) {
+        // When:
+        addend1 += addend2;
+
+        // Then:
+        assert_eq!(addend1, sum);
     }
 }
