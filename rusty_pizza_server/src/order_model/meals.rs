@@ -205,7 +205,7 @@ mod tests {
         assert_eq!(expected_change, calculated_change);
     }
 
-    #[rstest(prices, paid, tip, expected_underpaid,
+    #[rstest(prices, paid, tip, expected_change,
         case(vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 33)], Money::new(15, 0), Money::new(2, 20), ChangeMoneyError::Underpaid(Money::new(2, 28))),
         case(vec![Money::new(3, 50), Money::new(4, 42)], Money::new(7, 50), Money::new(1, 50), ChangeMoneyError::Underpaid(Money::new(1, 92))),
     )]
@@ -213,7 +213,7 @@ mod tests {
         prices: Vec<Money>,
         paid: Money,
         tip: Money,
-        expected_underpaid: ChangeMoneyError,
+        expected_change: ChangeMoneyError,
     ) {
         //Given
         let user = Rc::new(User::new(String::from("Peter")));
@@ -230,6 +230,6 @@ mod tests {
         //When
         let change = meals.calculate_change();
         //Then
-        assert_eq!(Err(expected_underpaid), underpaid),
+        assert_eq!(Err(expected_change), change);
     }
 }
