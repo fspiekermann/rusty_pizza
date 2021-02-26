@@ -2,6 +2,7 @@ use crate::order_model::special::{Special, SpecialFactory};
 use crate::util::id_provider::IdProvider;
 use crate::util::money::Money;
 use std::collections::BTreeSet;
+use std::mem;
 
 #[derive(Debug, PartialEq)]
 pub struct MealFactory {
@@ -61,6 +62,14 @@ impl Meal {
 
     pub fn get_price(&self) -> Money {
         self.price.clone()
+    }
+
+    pub fn remove_special_by_id(&mut self, id: u32) {
+        let specials = mem::replace(&mut self.specials, BTreeSet::new());
+        self.specials = specials
+            .into_iter()
+            .filter(|it| it.get_id() != id)
+            .collect();
     }
 }
 
@@ -215,5 +224,32 @@ mod tests {
 
         // Then:
         assert!(special1_id != special2_id);
+    }
+
+    #[test]
+    fn special_can_be_removed_by_id() {
+        // Given:
+        let mut meal_factory = MealFactory::new();
+        let mut meal =
+            meal_factory.create_meal(String::from("03"), String::from("groß"), Money::new(5, 50));
+        meal.add_special(String::from("Käserand"));
+
+        // When:
+        meal.remove_special_by_id(0);
+
+        // Then:
+        let mut expected_special_factory = SpecialFactory::new();
+        expected_special_factory.create_special(String::from("Käserand"));
+        assert_eq!(
+            meal,
+            Meal {
+                id: 0,
+                meal_id: String::from("03"),
+                variety: String::from("groß"),
+                price: Money::new(5, 50),
+                specials: BTreeSet::new(),
+                special_factory: expected_special_factory,
+            }
+        )
     }
 }
