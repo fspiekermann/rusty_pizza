@@ -1,3 +1,5 @@
+pub mod special;
+
 pub mod meal;
 
 pub mod meals;
