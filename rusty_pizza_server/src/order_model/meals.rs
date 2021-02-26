@@ -8,7 +8,7 @@ use std::rc::Rc;
 
 #[derive(Debug, PartialEq)]
 pub enum ChangeMoneyError {
-    Underpaid(Money),
+    Underpaid(Money), // Contains the difference between paid money and has to pay 
 }
 
 impl fmt::Display for ChangeMoneyError {
@@ -230,9 +230,6 @@ mod tests {
         //When
         let change = meals.calculate_change();
         //Then
-        match change {
-            Ok(_) => assert!(false, "Change returned ok"),
-            Err(underpaid) => assert_eq!(expected_underpaid, underpaid),
-        }
+        assert_eq!(Err(expected_underpaid), underpaid),
     }
 }
