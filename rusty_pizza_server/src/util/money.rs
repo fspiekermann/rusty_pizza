@@ -113,6 +113,14 @@ impl Mul<Money> for u16 {
     }
 }
 
+impl MulAssign<u16> for Money {
+    fn mul_assign(&mut self, other: u16) {
+        *self = Self {
+            cents: self.cents * other as u32,
+        }
+    }
+}
+
 impl Mul<u32> for Money {
     type Output = Self;
 
@@ -360,6 +368,18 @@ mod tests {
         case(Money::new(2, 5), 3u8, Money { cents: 615 }),
     )]
     fn money_can_be_mul_assigned_with_u8(mut money: Money, factor: u8, product: Money) {
+        // When:
+        money *= factor;
+
+        // Then:
+        assert_eq!(money, product);
+    }
+
+    #[rstest(money, factor, product,
+        case(Money::new(5, 0), 2u16, Money { cents: 1000 }),
+        case(Money::new(2, 5), 3u16, Money { cents: 615 }),
+    )]
+    fn money_can_be_mul_assigned_with_u16(mut money: Money, factor: u16, product: Money) {
         // When:
         money *= factor;
 
