@@ -8,7 +8,7 @@ use std::rc::Rc;
 
 #[derive(Debug, PartialEq)]
 pub enum ChangeMoneyError {
-    Underpaid(Money), // Contains the difference between paid money and has to pay 
+    Underpaid(Money), // Contains the difference between paid money and has to pay
 }
 
 impl fmt::Display for ChangeMoneyError {
@@ -77,6 +77,8 @@ impl Meals {
             return Err(ChangeMoneyError::Underpaid(has_to_pay - self.paid));
         }
         return Ok(self.paid - has_to_pay);
+    }
+
     pub fn remove_meal(&mut self, meal: Meal) -> bool {
         match self.meals.remove(&meal.get_id()) {
             Some(_) => return true,
@@ -240,11 +242,32 @@ mod tests {
         let change = meals.calculate_change();
         //Then
         assert_eq!(Err(expected_change), change);
+    }
 
-    #[rstest(to_remove, expected_result, remaining_length
-        case(Meal::new(0, String::from("03"), String::from("groß"), Money::new(5, 50)), true, 1),
-        case(Meal::new(1, String::from("35"), String::from("Spaghetti"), Money::new(4, 35)), true, 1),
-        case(Meal::new(2, String::from("42"), String::from("Kräuterbutter"), Money::new(2, 25)), false, 2),
+    #[rstest(
+        to_remove,
+        expected_result,
+        remaining_length,
+        case(
+            Meal::new(0, String::from("03"), String::from("groß"), Money::new(5, 50)),
+            true,
+            1
+        ),
+        case(
+            Meal::new(1, String::from("35"), String::from("Spaghetti"), Money::new(4, 35)),
+            true,
+            1
+        ),
+        case(
+            Meal::new(
+                2,
+                String::from("42"),
+                String::from("Kräuterbutter"),
+                Money::new(2, 25)
+            ),
+            false,
+            2
+        )
     )]
     fn meal_can_be_removed_from_meals(
         to_remove: Meal,
