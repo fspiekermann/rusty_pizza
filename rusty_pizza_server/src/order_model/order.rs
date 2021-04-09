@@ -1,11 +1,40 @@
 use crate::order_model::meal::{Meal, MealFactory};
 use crate::order_model::meals::Meals;
 use crate::order_model::user::User;
-use crate::util::money::Money;
-use std::collections::HashMap;
+use crate::util::money::{Money, ChangeMoneyError};
+use std::collections::{HashMap, HashSet};
 use std::error;
 use std::fmt;
 use std::rc::Rc;
+
+#[derive(Debug, PartialEq)]
+pub enum NotAllPaidEnoughError {
+    Underpaid(Money, HashSet<User>), // Contains the difference between paid money and has to pay
+    EnoughMoney(Money, HashSet<User>),
+}
+
+impl fmt::Display for NotAllPaidEnoughError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use NotAllPaidEnoughError::*;
+        match *self {
+            Underpaid(missing, paid_less) => write!(
+                f,
+                "There are missing {},{}Euro total amount!\n{:?} underpaid",
+                missing.get_euros(),
+                missing.get_cents(),
+                paid_less
+            ),
+            EnoughMoney(missing, paid_less) => write!(
+                f,
+                "We have enough money and will get {},{}Euro change!\nBut {:?} underpaid",
+                missing.get_euros(),
+                missing.get_cents(),
+                paid_less
+            ),
+        }
+    }
+}
+
 
 #[derive(Debug, PartialEq)]
 enum OrderStatus {
@@ -84,6 +113,44 @@ impl Order {
 
     pub fn get_meals_for_user(&mut self, user: Rc<User>) -> Option<&mut Meals> {
         self.meals.get_mut(&user)
+    }
+
+    pub fn calculate_total_price(&self) -> Money {
+        let mut total_price = Money::new(0, 0);
+        for single_order in self.meals.values() {
+            total_price += single_order.calculate_total_price();
+        }
+        return total_price;
+    }
+
+    pub fn calculate_total_tip(&self) -> Money {
+        let mut total_tip = Money::new(0, 0);
+        for single_order in self.meals.values() {
+            total_tip += single_order.get_tip();
+        }
+        return total_tip;
+    }
+
+    pub fn calculate_total_change(&self) -> Result<Money, ChangeMoneyError> {
+        let mut total_change = Money::new(0, 0);
+        let mut underpaid = Money::new(0, 0);
+        let mut paid_less = HashSet<User>::new();
+        for single_order in self.meals.values() {
+            match single_order.calculate_change() {
+                Ok(change)  => total_change += change,
+                Err(e) => {
+                    paid_less.insert(single_order.get_owner())
+                    paid_less += e.get_value()
+                }
+            }
+        }
+        if underpaid.get_total_cents() == 0 {
+            Ok(total_change)
+        } else if total_change > underpaid {
+            Err(NotAllPaidEnoughError::EnoughMoney(underpaid, paid_less))
+        } else {
+            Err(NotAllPaidEnoughError::Underpaid(underpaid, paid_less))
+        }
     }
 }
 
