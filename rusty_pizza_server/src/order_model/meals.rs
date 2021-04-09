@@ -64,7 +64,7 @@ impl Meals {
         self.meals.get_mut(&id).unwrap()
     }
 
-    pub fn get_owner(&self) -> User {
+    pub fn get_owner(&self) -> Rc<User> {
         self.owner.clone()
     }
 

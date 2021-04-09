@@ -1,7 +1,7 @@
 use crate::order_model::meal::{Meal, MealFactory};
 use crate::order_model::meals::Meals;
 use crate::order_model::user::User;
-use crate::util::money::{Money, ChangeMoneyError};
+use crate::util::money::Money;
 use std::collections::{HashMap, HashSet};
 use std::error;
 use std::fmt;
@@ -9,14 +9,14 @@ use std::rc::Rc;
 
 #[derive(Debug, PartialEq)]
 pub enum NotAllPaidEnoughError {
-    Underpaid(Money, HashSet<User>), // Contains the difference between paid money and has to pay
-    EnoughMoney(Money, HashSet<User>),
+    Underpaid(Money, HashSet<Rc<User>>), // Contains the difference between paid money and has to pay
+    EnoughMoney(Money, HashSet<Rc<User>>),
 }
 
 impl fmt::Display for NotAllPaidEnoughError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use NotAllPaidEnoughError::*;
-        match *self {
+        match &*self {
             Underpaid(missing, paid_less) => write!(
                 f,
                 "There are missing {},{}Euro total amount!\n{:?} underpaid",
@@ -131,16 +131,16 @@ impl Order {
         return total_tip;
     }
 
-    pub fn calculate_total_change(&self) -> Result<Money, ChangeMoneyError> {
+    pub fn calculate_total_change(&self) -> Result<Money, NotAllPaidEnoughError> {
         let mut total_change = Money::new(0, 0);
         let mut underpaid = Money::new(0, 0);
-        let mut paid_less = HashSet<User>::new();
+        let mut paid_less: HashSet<Rc<User>> = HashSet::new();
         for single_order in self.meals.values() {
             match single_order.calculate_change() {
                 Ok(change)  => total_change += change,
                 Err(e) => {
-                    paid_less.insert(single_order.get_owner())
-                    paid_less += e.get_value()
+                    paid_less.insert(single_order.get_owner());
+                    underpaid += e.get_value()
                 }
             }
         }
@@ -293,5 +293,41 @@ mod tests {
 
         // Then:
         assert_eq!(meals, Some(&mut Meals::new(user)));
+    }
+
+    #[rstest(prices, names, expected_total,
+        case(
+            vec![
+                vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
+                vec![Money::new(3, 50), Money::new(4, 42)],
+                vec![Money::new(6, 83)],
+            ],
+            vec![String::from("Peter"), String::from("Mia"), String::from("Harald")],
+            Money::new(29, 87)),
+        case(
+            vec![
+                vec![Money::new(2, 25), Money::new(4, 42)],
+                vec![Money::new(5, 50)],
+            ],
+            vec![String::from("Adam"), String::from("Eva")],
+            Money::new(12, 17)),
+    )]
+    fn total_price_is_calculated_correctly(prices: Vec<Vec<Money>>, names: Vec<String>, expected_total: Money) {
+        //Given
+        let manager = Rc::new(User::new(String::from("God")));
+        let mut order = Order::new(manager);
+        
+        let mut names_iter = names.into_iter();
+        for meal_prices in prices.into_iter() {
+            let user = Rc::new(User::new(names_iter.next().unwrap()));
+            order.add_user(user.clone());
+            for price in meal_prices.iter() {
+                order.add_meal_for_user(user.clone(), String::from("XX"), String::from("something"), price.clone()).unwrap();
+            }
+        }
+        //When
+        let calculated_total = order.calculate_total_price();
+        //Then
+        assert_eq!(expected_total, calculated_total);
     }
 }
