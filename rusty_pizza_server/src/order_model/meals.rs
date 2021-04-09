@@ -79,7 +79,7 @@ impl Meals {
         return Ok(self.paid - has_to_pay);
     }
 
-    /// Removes the given `Meal` from `meals` and returns True if succeeded
+    /// Removes the given `Meal` from `meals` and returns `true` if succeeded
     ///
     /// # Arguments
     ///
@@ -87,7 +87,7 @@ impl Meals {
     ///
     /// # Return
     ///
-    /// * boolean value if succedded or not
+    /// * boolean value if succeeded or not
     pub fn remove_meal(&mut self, meal: Meal) -> bool {
         match self.meals.remove(&meal.get_id()) {
             Some(_) => return true,
@@ -95,7 +95,7 @@ impl Meals {
         }
     }
 
-    /// Removes a `Meal` belonging to the given `id` from `meals` and returns the removed `Meal` Object if succeeded
+    /// Removes a `Meal` belonging to the given `id` from `meals` and returns the removed `Meal` object if succeeded
     ///
     /// # Arguments
     ///
@@ -103,7 +103,7 @@ impl Meals {
     ///
     /// # Return
     ///
-    /// * The removed `Meal`object If succedded or None
+    /// * The removed `Meal` object if succeeded or None
     pub fn remove_meal_by_id(&mut self, id: u32) -> Option<Meal> {
         self.meals.remove(&id)
     }
