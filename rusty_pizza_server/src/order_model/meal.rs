@@ -1,8 +1,7 @@
 use crate::order_model::special::{Special, SpecialFactory};
 use crate::util::id_provider::IdProvider;
 use crate::util::money::Money;
-use std::collections::BTreeSet;
-use std::mem;
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct MealFactory {
@@ -21,7 +20,7 @@ impl MealFactory {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Meal {
     /// Unique ID of this meal
     id: u32,
@@ -30,7 +29,7 @@ pub struct Meal {
     /// Size of the pizza or noodle type etc.
     variety: String,
     price: Money,
-    specials: BTreeSet<Special>,
+    specials: HashMap<u32, Special>,
     special_factory: SpecialFactory,
 }
 
@@ -41,7 +40,7 @@ impl Meal {
             meal_id,
             variety,
             price,
-            specials: BTreeSet::new(),
+            specials: HashMap::new(),
             special_factory: SpecialFactory::new(),
         }
     }
@@ -52,12 +51,13 @@ impl Meal {
 
     pub fn add_special(&mut self, description: String) -> &Special {
         let special = self.special_factory.create_special(description);
-        self.specials.insert(special.clone());
-        self.specials.get(&special).unwrap()
+        let id = special.get_id();
+        self.specials.insert(id, special);
+        self.specials.get(&id).unwrap()
     }
 
     pub fn remove_special(&mut self, special: &Special) {
-        self.specials.remove(special);
+        self.remove_special_by_id(special.get_id());
     }
 
     pub fn get_price(&self) -> Money {
@@ -65,11 +65,7 @@ impl Meal {
     }
 
     pub fn remove_special_by_id(&mut self, id: u32) {
-        let specials = mem::replace(&mut self.specials, BTreeSet::new());
-        self.specials = specials
-            .into_iter()
-            .filter(|it| it.get_id() != id)
-            .collect();
+        self.specials.remove(&id);
     }
 }
 
@@ -95,7 +91,7 @@ mod tests {
                 meal_id: String::from("03"),
                 variety: String::from("groß"),
                 price: Money::new(5, 50),
-                specials: BTreeSet::new(),
+                specials: HashMap::new(),
                 special_factory: SpecialFactory::new(),
             }
         );
@@ -109,7 +105,7 @@ mod tests {
             meal_id: String::from("03"),
             variety: String::from("groß"),
             price: Money::new(5, 50),
-            specials: BTreeSet::new(),
+            specials: HashMap::new(),
             special_factory: SpecialFactory::new(),
         };
 
@@ -120,8 +116,9 @@ mod tests {
         assert_eq!(special, &Special::new(0, String::from("Käserand")));
 
         let mut expected_special_factory = SpecialFactory::new();
-        let mut expected_specials = BTreeSet::new();
-        expected_specials.insert(expected_special_factory.create_special(String::from("Käserand")));
+        let mut expected_specials = HashMap::new();
+        let expected_special = expected_special_factory.create_special(String::from("Käserand"));
+        expected_specials.insert(expected_special.get_id(), expected_special);
         assert_eq!(
             meal,
             Meal {
@@ -139,8 +136,9 @@ mod tests {
     fn special_can_be_removed_from_meal() {
         //Given
         let mut special_factory = SpecialFactory::new();
-        let mut specials = BTreeSet::new();
-        specials.insert(special_factory.create_special(String::from("Käserand")));
+        let mut specials = HashMap::new();
+        let special = special_factory.create_special(String::from("Käserand"));
+        specials.insert(special.get_id(), special);
         let mut meal = Meal {
             id: 0,
             meal_id: String::from("03"),
@@ -165,7 +163,7 @@ mod tests {
                 meal_id: String::from("03"),
                 variety: String::from("groß"),
                 price: Money::new(5, 50),
-                specials: BTreeSet::new(),
+                specials: HashMap::new(),
                 special_factory: expected_special_factory,
             }
         );
@@ -188,7 +186,7 @@ mod tests {
                 meal_id: String::from("03"),
                 variety: String::from("groß"),
                 price: Money::new(5, 50),
-                specials: BTreeSet::new(),
+                specials: HashMap::new(),
                 special_factory: SpecialFactory::new(),
             }
         );
@@ -247,7 +245,7 @@ mod tests {
                 meal_id: String::from("03"),
                 variety: String::from("groß"),
                 price: Money::new(5, 50),
-                specials: BTreeSet::new(),
+                specials: HashMap::new(),
                 special_factory: expected_special_factory,
             }
         )
