@@ -61,7 +61,7 @@ impl Meal {
     }
 
     pub fn get_price(&self) -> Money {
-        self.price.clone()
+        self.price
     }
 
     pub fn remove_special_by_id(&mut self, id: u32) {
