@@ -111,6 +111,32 @@ impl Order {
         }
     }
 
+    pub fn set_paid_for_user(
+        &mut self,
+        user: Rc<User>,
+        paid: Money,
+    ) -> Result<&mut Meal, OrderError> {
+        match self.meals.get_mut(&user) {
+            Some(meals) => {
+                Ok(meals.set_paid(paid))
+            }
+            None => Err(OrderError::UserNotParticipating),
+        }
+    }
+
+    pub fn set_tip_for_user(
+        &mut self,
+        user: Rc<User>,
+        tip: Money,
+    ) -> Result<&mut Meal, OrderError> {
+        match self.meals.get_mut(&user) {
+            Some(meals) => {
+                Ok(meals.set_tip(tip))
+            }
+            None => Err(OrderError::UserNotParticipating),
+        }
+    }
+
     pub fn get_meals_for_user(&mut self, user: Rc<User>) -> Option<&mut Meals> {
         self.meals.get_mut(&user)
     }
@@ -314,9 +340,9 @@ mod tests {
     )]
     fn total_price_is_calculated_correctly(prices: Vec<Vec<Money>>, names: Vec<String>, expected_total: Money) {
         //Given
-        let manager = Rc::new(User::new(String::from("God")));
+        let manager = Rc::new(User::new(String::from("Gott")));
         let mut order = Order::new(manager);
-        
+
         let mut names_iter = names.into_iter();
         for meal_prices in prices.into_iter() {
             let user = Rc::new(User::new(names_iter.next().unwrap()));
@@ -329,5 +355,35 @@ mod tests {
         let calculated_total = order.calculate_total_price();
         //Then
         assert_eq!(expected_total, calculated_total);
+    }
+
+    #[rstest(prices, names, expected_total,
+        case(
+            vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
+            vec![String::from("Peter"), String::from("Mia"), String::from("Harald")],
+            Money::new(15, 13)),
+        case(
+            vec![
+                vec![Money::new(2, 25), Money::new(4, 42)],
+                vec![Money::new(5, 50)],
+            ],
+            vec![String::from("Adam"), String::from("Eva")],
+            Money::new(12, 17)),
+    )]
+    fn total_tip_is_calculated_correctly(tips: Vec<Money>, names: Vec<String>, total_tip: Money) {
+        //Given
+        let manager = Rc::new(User::new(String::from("Gott")));
+        let mut order = Order::new(manager);
+
+        let mut names_iter = names.into_iter();
+        for tip in tips.into_iter() {
+            let user = Rc::new(User::new(names_iter.next().unwrap()));
+            order.add_user(user.clone());
+            order.set_tip_for_user(user.clone(), tip)
+        }
+        //When
+        let calculated_tip = order.calculate_total_price();
+        //Then
+        assert_eq!(total_tip, calculated_tip);
     }
 }
