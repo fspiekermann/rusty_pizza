@@ -363,11 +363,11 @@ mod tests {
         case(
             vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
             vec![String::from("Peter"), String::from("Mia"), String::from("Harald")],
-            Money::new(15, 13)),
+            Money::new(15, 12)),
         case(
             vec![Money::new(2, 25), Money::new(4, 42)],
             vec![String::from("Adam"), String::from("Eva")],
-            Money::new(7, 92)),
+            Money::new(6, 67)),
     )]
     fn total_tip_is_calculated_correctly(tips: Vec<Money>, names: Vec<String>, total_tip: Money) {
         //Given
@@ -381,7 +381,8 @@ mod tests {
             order.set_tip_for_user(user.clone(), tip).unwrap();
         }
         //When
-        let calculated_tip = order.calculate_total_price();
+        let calculated_tip = order.calculate_total_tip();
+
         //Then
         assert_eq!(total_tip, calculated_tip);
     }
@@ -395,15 +396,17 @@ mod tests {
             ],
             vec![Money::new(17, 00), Money::new(8, 50), Money::new(6, 83)],
             vec![String::from("Peter"), String::from("Mia"), String::from("Harald")],
-            Money::new(2, 45)),
+            Money::new(2, 46),
+        ),
         case(
             vec![
                 vec![Money::new(2, 25), Money::new(4, 42)], //6,67
                 vec![Money::new(5, 50)], //5,50
             ],
-            vec![Money::new(8, 25), Money::new(5, 50)]
+            vec![Money::new(8, 25), Money::new(5, 50)],
             vec![String::from("Adam"), String::from("Eva")],
-            Money::new(1, 58)),
+            Money::new(1, 58),
+        ),
     )]
     fn all_paid_enough_change_is_calculated_correctly(
         prices: Vec<Vec<Money>>,
@@ -432,6 +435,14 @@ mod tests {
         assert_eq!(expected_change, calculated_change);
     }
 
+    fn build_paid_less_hash_set(names: Vec<String>) -> HashSet<Rc<User>> {
+        let mut paid_less: HashSet<Rc<User>> = HashSet::new();
+        for name in names {
+            paid_less.insert(Rc::new(User::new(name)));
+        }
+        return paid_less;
+    }
+
     #[rstest(prices, paids, names, expected_change,
         case(
             vec![
@@ -442,8 +453,8 @@ mod tests {
             vec![Money::new(17, 00), Money::new(7, 50), Money::new(6, 00)],
             vec![String::from("Peter"), String::from("Mia"), String::from("Harald")],
             NotAllPaidEnoughError::EnoughMoney(
-                [User::new(String::from("Mia")), User::new(String::from("Harald"))].iter().cloned().collect(),
-                Money::new(0, 62)
+                Money::new(0, 63),
+                build_paid_less_hash_set(vec!(String::from("Mia"), String::from("Harald"))),
             ),
         ),
         case(
@@ -454,8 +465,8 @@ mod tests {
             vec![Money::new(8, 25), Money::new(5, 00)],
             vec![String::from("Adam"), String::from("Eva")],
             NotAllPaidEnoughError::EnoughMoney(
-                [User::new(String::from("Eva"))].iter().cloned().collect(),
                 Money::new(1, 08),
+                build_paid_less_hash_set(vec!(String::from("Eva"))),
             ),
         ),
     )]
@@ -493,11 +504,11 @@ mod tests {
                 vec![Money::new(3, 50), Money::new(4, 42)], //7,92
                 vec![Money::new(6, 83)], //6,83
             ],
-            vec![Money::new(1, 00), Money::new(7, 50), Money::new(6, 00)],
+            vec![Money::new(16, 00), Money::new(7, 50), Money::new(6, 00)],
             vec![String::from("Peter"), String::from("Mia"), String::from("Harald")],
-            NotAllPaidEnoughError::EnoughMoney(
-                [User::new(String::from("Mia")), User::new(String::from("Harald"))].iter().cloned().collect(),
-                Money::new(0, 38)
+            NotAllPaidEnoughError::Underpaid(
+                Money::new(0, 37),
+                build_paid_less_hash_set(vec!(String::from("Mia"), String::from("Harald"))),
             ),
         ),
         case(
@@ -505,11 +516,11 @@ mod tests {
                 vec![Money::new(2, 25), Money::new(4, 42)], //6,67
                 vec![Money::new(5, 50)], //5,50
             ],
-            vec![Money::new(6, 25), Money::new(5, 00)]
+            vec![Money::new(6, 25), Money::new(5, 00)],
             vec![String::from("Adam"), String::from("Eva")],
             NotAllPaidEnoughError::Underpaid(
-                [User::new(String::from("Adam")), User::new(String::from("Eva"))].iter().cloned().collect(),
                 Money::new(0, 92),
+                build_paid_less_hash_set(vec!(String::from("Adam"), String::from("Eva"))),
             ),
         ),
     )]
