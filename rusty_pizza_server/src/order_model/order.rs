@@ -35,7 +35,6 @@ impl fmt::Display for NotAllPaidEnoughError {
     }
 }
 
-
 #[derive(Debug, PartialEq)]
 enum OrderStatus {
     Open,
@@ -111,11 +110,7 @@ impl Order {
         }
     }
 
-    pub fn set_paid_for_user(
-        &mut self,
-        user: Rc<User>,
-        paid: Money,
-    ) -> Result<(), OrderError> {
+    pub fn set_paid_for_user(&mut self, user: Rc<User>, paid: Money) -> Result<(), OrderError> {
         match self.meals.get_mut(&user) {
             Some(meals) => {
                 meals.set_paid(paid);
@@ -125,11 +120,7 @@ impl Order {
         }
     }
 
-    pub fn set_tip_for_user(
-        &mut self,
-        user: Rc<User>,
-        tip: Money,
-    ) -> Result<(), OrderError> {
+    pub fn set_tip_for_user(&mut self, user: Rc<User>, tip: Money) -> Result<(), OrderError> {
         match self.meals.get_mut(&user) {
             Some(meals) => {
                 meals.set_tip(tip);
@@ -165,7 +156,7 @@ impl Order {
         let mut paid_less: HashSet<Rc<User>> = HashSet::new();
         for single_order in self.meals.values() {
             match single_order.calculate_change() {
-                Ok(change)  => total_change += change,
+                Ok(change) => total_change += change,
                 Err(e) => {
                     paid_less.insert(single_order.get_owner());
                     underpaid += e.get_value()
@@ -175,9 +166,15 @@ impl Order {
         if underpaid.get_total_cents() == 0 {
             Ok(total_change)
         } else if total_change > underpaid {
-            Err(NotAllPaidEnoughError::EnoughMoney(total_change - underpaid, paid_less))
+            Err(NotAllPaidEnoughError::EnoughMoney(
+                total_change - underpaid,
+                paid_less,
+            ))
         } else {
-            Err(NotAllPaidEnoughError::Underpaid(underpaid - total_change, paid_less))
+            Err(NotAllPaidEnoughError::Underpaid(
+                underpaid - total_change,
+                paid_less,
+            ))
         }
     }
 }
@@ -340,7 +337,11 @@ mod tests {
             vec![String::from("Adam"), String::from("Eva")],
             Money::new(12, 17)),
     )]
-    fn total_price_is_calculated_correctly(prices: Vec<Vec<Money>>, names: Vec<String>, expected_total: Money) {
+    fn total_price_is_calculated_correctly(
+        prices: Vec<Vec<Money>>,
+        names: Vec<String>,
+        expected_total: Money,
+    ) {
         //Given
         let manager = Rc::new(User::new(String::from("Gott")));
         let mut order = Order::new(manager);
@@ -350,7 +351,14 @@ mod tests {
             let user = Rc::new(User::new(names_iter.next().unwrap()));
             order.add_user(user.clone());
             for price in meal_prices.iter() {
-                order.add_meal_for_user(user.clone(), String::from("XX"), String::from("something"), price.clone()).unwrap();
+                order
+                    .add_meal_for_user(
+                        user.clone(),
+                        String::from("XX"),
+                        String::from("something"),
+                        price.clone(),
+                    )
+                    .unwrap();
             }
         }
         //When
@@ -412,7 +420,7 @@ mod tests {
         prices: Vec<Vec<Money>>,
         paids: Vec<Money>,
         names: Vec<String>,
-        expected_change: Money
+        expected_change: Money,
     ) {
         //Given
         let manager = Rc::new(User::new(String::from("Gott")));
@@ -425,7 +433,14 @@ mod tests {
             let paid = paids_iter.next().unwrap();
             order.add_user(user.clone());
             for price in meal_prices.iter() {
-                order.add_meal_for_user(user.clone(), String::from("XX"), String::from("something"), price.clone()).unwrap();
+                order
+                    .add_meal_for_user(
+                        user.clone(),
+                        String::from("XX"),
+                        String::from("something"),
+                        price.clone(),
+                    )
+                    .unwrap();
             }
             order.set_paid_for_user(user.clone(), paid).unwrap();
         }
@@ -474,7 +489,7 @@ mod tests {
         prices: Vec<Vec<Money>>,
         paids: Vec<Money>,
         names: Vec<String>,
-        expected_change: NotAllPaidEnoughError
+        expected_change: NotAllPaidEnoughError,
     ) {
         //Given
         let manager = Rc::new(User::new(String::from("Gott")));
@@ -487,7 +502,14 @@ mod tests {
             let paid = paids_iter.next().unwrap();
             order.add_user(user.clone());
             for price in meal_prices.iter() {
-                order.add_meal_for_user(user.clone(), String::from("XX"), String::from("something"), price.clone()).unwrap();
+                order
+                    .add_meal_for_user(
+                        user.clone(),
+                        String::from("XX"),
+                        String::from("something"),
+                        price.clone(),
+                    )
+                    .unwrap();
             }
             order.set_paid_for_user(user.clone(), paid).unwrap();
         }
@@ -528,7 +550,7 @@ mod tests {
         prices: Vec<Vec<Money>>,
         paids: Vec<Money>,
         names: Vec<String>,
-        expected_change: NotAllPaidEnoughError
+        expected_change: NotAllPaidEnoughError,
     ) {
         //Given
         let manager = Rc::new(User::new(String::from("Gott")));
@@ -541,7 +563,14 @@ mod tests {
             let paid = paids_iter.next().unwrap();
             order.add_user(user.clone());
             for price in meal_prices.iter() {
-                order.add_meal_for_user(user.clone(), String::from("XX"), String::from("something"), price.clone()).unwrap();
+                order
+                    .add_meal_for_user(
+                        user.clone(),
+                        String::from("XX"),
+                        String::from("something"),
+                        price.clone(),
+                    )
+                    .unwrap();
             }
             order.set_paid_for_user(user.clone(), paid).unwrap();
         }
