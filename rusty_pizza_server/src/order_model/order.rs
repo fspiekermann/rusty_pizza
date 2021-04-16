@@ -320,37 +320,55 @@ mod tests {
         assert_eq!(meals, Some(&mut Meals::new(user)));
     }
 
-    #[rstest(prices, names, expected_total,
+    struct MealsAttributes(Vec<Money>, String, Money);
+
+    #[rstest(meals_attributes, expected_total,
         case(
             vec![
-                vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
-                vec![Money::new(3, 50), Money::new(4, 42)],
-                vec![Money::new(6, 83)],
+                MealsAttributes(
+                    vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
+                    String::from("Peter"),
+                    Money::new(0, 0),
+                ),
+                MealsAttributes(
+                    vec![Money::new(3, 50), Money::new(4, 42)],
+                    String::from("Mia"),
+                    Money::new(0, 0),
+                ),
+                MealsAttributes(
+                    vec![Money::new(6, 83)],
+                    String::from("Harald"),
+                    Money::new(0, 0),
+                ),
             ],
-            vec![String::from("Peter"), String::from("Mia"), String::from("Harald")],
             Money::new(29, 87)),
         case(
             vec![
-                vec![Money::new(2, 25), Money::new(4, 42)],
-                vec![Money::new(5, 50)],
+                MealsAttributes(
+                    vec![Money::new(2, 25), Money::new(4, 42)],
+                    String::from("Adam"),
+                    Money::new(0, 0),
+                ),
+                MealsAttributes(
+                    vec![Money::new(5, 50)],
+                    String::from("Eva"),
+                    Money::new(0, 0),
+                )
             ],
-            vec![String::from("Adam"), String::from("Eva")],
             Money::new(12, 17)),
     )]
     fn total_price_is_calculated_correctly(
-        prices: Vec<Vec<Money>>,
-        names: Vec<String>,
+        meals_attributes: Vec<MealsAttributes>,
         expected_total: Money,
     ) {
         //Given
         let manager = Rc::new(User::new(String::from("Gott")));
         let mut order = Order::new(manager);
 
-        let mut names_iter = names.into_iter();
-        for meal_prices in prices.into_iter() {
-            let user = Rc::new(User::new(names_iter.next().unwrap()));
+        for attributes in meals_attributes.into_iter() {
+            let user = Rc::new(User::new(attributes.1));
             order.add_user(user.clone());
-            for price in meal_prices.iter() {
+            for price in attributes.0.iter() {
                 order
                     .add_meal_for_user(
                         user.clone(),
@@ -367,26 +385,50 @@ mod tests {
         assert_eq!(expected_total, calculated_total);
     }
 
-    #[rstest(tips, names, total_tip,
+    #[rstest(meals_attributes, total_tip,
         case(
-            vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
-            vec![String::from("Peter"), String::from("Mia"), String::from("Harald")],
+            vec![
+                MealsAttributes(
+                    vec![],
+                    String::from("Peter"),
+                    Money::new(2, 25),
+                ),
+                MealsAttributes(
+                    vec![],
+                    String::from("Mia"),
+                    Money::new(5, 50),
+                ),
+                MealsAttributes(
+                    vec![],
+                    String::from("Harald"),
+                    Money::new(7, 37),
+                ),
+            ],
             Money::new(15, 12)),
         case(
-            vec![Money::new(2, 25), Money::new(4, 42)],
-            vec![String::from("Adam"), String::from("Eva")],
+            vec![
+                MealsAttributes(
+                    vec![],
+                    String::from("Adam"),
+                    Money::new(2, 25),
+                ),
+                MealsAttributes(
+                    vec![],
+                    String::from("Eva"),
+                    Money::new(4, 42),
+                )
+            ],
             Money::new(6, 67)),
     )]
-    fn total_tip_is_calculated_correctly(tips: Vec<Money>, names: Vec<String>, total_tip: Money) {
+    fn total_tip_is_calculated_correctly(meals_attributes: Vec<MealsAttributes>, total_tip: Money) {
         //Given
         let manager = Rc::new(User::new(String::from("Gott")));
         let mut order = Order::new(manager);
 
-        let mut names_iter = names.into_iter();
-        for tip in tips.into_iter() {
-            let user = Rc::new(User::new(names_iter.next().unwrap()));
+        for attributes in meals_attributes.into_iter() {
+            let user = Rc::new(User::new(attributes.1));
             order.add_user(user.clone());
-            order.set_tip_for_user(user.clone(), tip).unwrap();
+            order.set_tip_for_user(user.clone(), attributes.2).unwrap();
         }
         //When
         let calculated_tip = order.calculate_total_tip();
@@ -395,44 +437,55 @@ mod tests {
         assert_eq!(total_tip, calculated_tip);
     }
 
-    #[rstest(prices, paids, names, expected_change,
+    #[rstest(meals_attributes, expected_change,
         case(
             vec![
-                vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)], //15,13
-                vec![Money::new(3, 50), Money::new(4, 42)], //7,92
-                vec![Money::new(6, 83)], //6,83
+                MealsAttributes(
+                    vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
+                    String::from("Peter"),
+                    Money::new(17, 00),
+                ),
+                MealsAttributes(
+                    vec![Money::new(3, 50), Money::new(4, 42)],
+                    String::from("Mia"),
+                    Money::new(8, 50),
+                ),
+                MealsAttributes(
+                    vec![Money::new(6, 83)],
+                    String::from("Harald"),
+                    Money::new(6, 83),
+                ),
             ],
-            vec![Money::new(17, 00), Money::new(8, 50), Money::new(6, 83)],
-            vec![String::from("Peter"), String::from("Mia"), String::from("Harald")],
             Money::new(2, 46),
         ),
         case(
             vec![
-                vec![Money::new(2, 25), Money::new(4, 42)], //6,67
-                vec![Money::new(5, 50)], //5,50
+                MealsAttributes(
+                    vec![Money::new(2, 25), Money::new(4, 42)],
+                    String::from("Adam"),
+                    Money::new(8, 25),
+                ),
+                MealsAttributes(
+                    vec![Money::new(5, 50)],
+                    String::from("Eva"),
+                    Money::new(5, 50),
+                )
             ],
-            vec![Money::new(8, 25), Money::new(5, 50)],
-            vec![String::from("Adam"), String::from("Eva")],
             Money::new(1, 58),
         ),
     )]
     fn all_paid_enough_change_is_calculated_correctly(
-        prices: Vec<Vec<Money>>,
-        paids: Vec<Money>,
-        names: Vec<String>,
+        meals_attributes: Vec<MealsAttributes>,
         expected_change: Money,
     ) {
         //Given
         let manager = Rc::new(User::new(String::from("Gott")));
         let mut order = Order::new(manager);
 
-        let mut names_iter = names.into_iter();
-        let mut paids_iter = paids.into_iter();
-        for meal_prices in prices.into_iter() {
-            let user = Rc::new(User::new(names_iter.next().unwrap()));
-            let paid = paids_iter.next().unwrap();
+        for attributes in meals_attributes.into_iter() {
+            let user = Rc::new(User::new(attributes.1));
             order.add_user(user.clone());
-            for price in meal_prices.iter() {
+            for price in attributes.0.iter() {
                 order
                     .add_meal_for_user(
                         user.clone(),
@@ -442,7 +495,7 @@ mod tests {
                     )
                     .unwrap();
             }
-            order.set_paid_for_user(user.clone(), paid).unwrap();
+            order.set_paid_for_user(user.clone(), attributes.2).unwrap();
         }
         //When
         let calculated_change = order.calculate_total_change().unwrap();
@@ -458,15 +511,25 @@ mod tests {
         return paid_less;
     }
 
-    #[rstest(prices, paids, names, expected_change,
+    #[rstest(meals_attributes, expected_change,
         case(
             vec![
-                vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)], //15,13
-                vec![Money::new(3, 50), Money::new(4, 42)], //7,92
-                vec![Money::new(6, 83)], //6,83
+                MealsAttributes(
+                    vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
+                    String::from("Peter"),
+                    Money::new(17, 00),
+                ),
+                MealsAttributes(
+                    vec![Money::new(3, 50), Money::new(4, 42)],
+                    String::from("Mia"),
+                    Money::new(7, 50),
+                ),
+                MealsAttributes(
+                    vec![Money::new(6, 83)],
+                    String::from("Harald"),
+                    Money::new(6, 00),
+                ),
             ],
-            vec![Money::new(17, 00), Money::new(7, 50), Money::new(6, 00)],
-            vec![String::from("Peter"), String::from("Mia"), String::from("Harald")],
             NotAllPaidEnoughError::EnoughMoney(
                 Money::new(0, 63),
                 build_paid_less_hash_set(vec!(String::from("Mia"), String::from("Harald"))),
@@ -474,11 +537,17 @@ mod tests {
         ),
         case(
             vec![
-                vec![Money::new(2, 25), Money::new(4, 42)], //6,67
-                vec![Money::new(5, 50)], //5,50
+                MealsAttributes(
+                    vec![Money::new(2, 25), Money::new(4, 42)],
+                    String::from("Adam"),
+                    Money::new(8, 25),
+                ),
+                MealsAttributes(
+                    vec![Money::new(5, 50)],
+                    String::from("Eva"),
+                    Money::new(5, 00),
+                )
             ],
-            vec![Money::new(8, 25), Money::new(5, 00)],
-            vec![String::from("Adam"), String::from("Eva")],
             NotAllPaidEnoughError::EnoughMoney(
                 Money::new(1, 08),
                 build_paid_less_hash_set(vec!(String::from("Eva"))),
@@ -486,22 +555,17 @@ mod tests {
         ),
     )]
     fn not_all_paid_enough_change_is_positive(
-        prices: Vec<Vec<Money>>,
-        paids: Vec<Money>,
-        names: Vec<String>,
+        meals_attributes: Vec<MealsAttributes>,
         expected_change: NotAllPaidEnoughError,
     ) {
         //Given
         let manager = Rc::new(User::new(String::from("Gott")));
         let mut order = Order::new(manager);
 
-        let mut names_iter = names.into_iter();
-        let mut paids_iter = paids.into_iter();
-        for meal_prices in prices.into_iter() {
-            let user = Rc::new(User::new(names_iter.next().unwrap()));
-            let paid = paids_iter.next().unwrap();
+        for attributes in meals_attributes.into_iter() {
+            let user = Rc::new(User::new(attributes.1));
             order.add_user(user.clone());
-            for price in meal_prices.iter() {
+            for price in attributes.0.iter() {
                 order
                     .add_meal_for_user(
                         user.clone(),
@@ -511,7 +575,7 @@ mod tests {
                     )
                     .unwrap();
             }
-            order.set_paid_for_user(user.clone(), paid).unwrap();
+            order.set_paid_for_user(user.clone(), attributes.2).unwrap();
         }
         //When
         let calculated_change = order.calculate_total_change();
@@ -519,15 +583,25 @@ mod tests {
         assert_eq!(Err(expected_change), calculated_change);
     }
 
-    #[rstest(prices, paids, names, expected_change,
+    #[rstest(meals_attributes, expected_change,
         case(
             vec![
-                vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)], //15,13
-                vec![Money::new(3, 50), Money::new(4, 42)], //7,92
-                vec![Money::new(6, 83)], //6,83
+                MealsAttributes(
+                    vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
+                    String::from("Peter"),
+                    Money::new(16, 00),
+                ),
+                MealsAttributes(
+                    vec![Money::new(3, 50), Money::new(4, 42)],
+                    String::from("Mia"),
+                    Money::new(7, 50),
+                ),
+                MealsAttributes(
+                    vec![Money::new(6, 83)],
+                    String::from("Harald"),
+                    Money::new(6, 00),
+                ),
             ],
-            vec![Money::new(16, 00), Money::new(7, 50), Money::new(6, 00)],
-            vec![String::from("Peter"), String::from("Mia"), String::from("Harald")],
             NotAllPaidEnoughError::Underpaid(
                 Money::new(0, 37),
                 build_paid_less_hash_set(vec!(String::from("Mia"), String::from("Harald"))),
@@ -535,11 +609,17 @@ mod tests {
         ),
         case(
             vec![
-                vec![Money::new(2, 25), Money::new(4, 42)], //6,67
-                vec![Money::new(5, 50)], //5,50
+                MealsAttributes(
+                    vec![Money::new(2, 25), Money::new(4, 42)],
+                    String::from("Adam"),
+                    Money::new(6, 25),
+                ),
+                MealsAttributes(
+                    vec![Money::new(5, 50)],
+                    String::from("Eva"),
+                    Money::new(5, 00),
+                )
             ],
-            vec![Money::new(6, 25), Money::new(5, 00)],
-            vec![String::from("Adam"), String::from("Eva")],
             NotAllPaidEnoughError::Underpaid(
                 Money::new(0, 92),
                 build_paid_less_hash_set(vec!(String::from("Adam"), String::from("Eva"))),
@@ -547,22 +627,17 @@ mod tests {
         ),
     )]
     fn not_all_paid_enough_change_is_negative(
-        prices: Vec<Vec<Money>>,
-        paids: Vec<Money>,
-        names: Vec<String>,
+        meals_attributes: Vec<MealsAttributes>,
         expected_change: NotAllPaidEnoughError,
     ) {
         //Given
         let manager = Rc::new(User::new(String::from("Gott")));
         let mut order = Order::new(manager);
 
-        let mut names_iter = names.into_iter();
-        let mut paids_iter = paids.into_iter();
-        for meal_prices in prices.into_iter() {
-            let user = Rc::new(User::new(names_iter.next().unwrap()));
-            let paid = paids_iter.next().unwrap();
+        for attributes in meals_attributes.into_iter() {
+            let user = Rc::new(User::new(attributes.1));
             order.add_user(user.clone());
-            for price in meal_prices.iter() {
+            for price in attributes.0.iter() {
                 order
                     .add_meal_for_user(
                         user.clone(),
@@ -572,7 +647,7 @@ mod tests {
                     )
                     .unwrap();
             }
-            order.set_paid_for_user(user.clone(), paid).unwrap();
+            order.set_paid_for_user(user.clone(), attributes.2).unwrap();
         }
         //When
         let calculated_change = order.calculate_total_change();
