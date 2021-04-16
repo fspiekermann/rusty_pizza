@@ -327,17 +327,17 @@ mod tests {
             vec![
                 MealsAttributes(
                     vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
-                    String::from("Peter"),
+                    String::from("Gabriel"),
                     Money::new(0, 0),
                 ),
                 MealsAttributes(
                     vec![Money::new(3, 50), Money::new(4, 42)],
-                    String::from("Mia"),
+                    String::from("Michael"),
                     Money::new(0, 0),
                 ),
                 MealsAttributes(
                     vec![Money::new(6, 83)],
-                    String::from("Harald"),
+                    String::from("Uriel"),
                     Money::new(0, 0),
                 ),
             ],
@@ -390,17 +390,17 @@ mod tests {
             vec![
                 MealsAttributes(
                     vec![],
-                    String::from("Peter"),
+                    String::from("Gabriel"),
                     Money::new(2, 25),
                 ),
                 MealsAttributes(
                     vec![],
-                    String::from("Mia"),
+                    String::from("Michael"),
                     Money::new(5, 50),
                 ),
                 MealsAttributes(
                     vec![],
-                    String::from("Harald"),
+                    String::from("Uriel"),
                     Money::new(7, 37),
                 ),
             ],
@@ -442,17 +442,17 @@ mod tests {
             vec![
                 MealsAttributes(
                     vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
-                    String::from("Peter"),
+                    String::from("Gabriel"),
                     Money::new(17, 00),
                 ),
                 MealsAttributes(
                     vec![Money::new(3, 50), Money::new(4, 42)],
-                    String::from("Mia"),
+                    String::from("Michael"),
                     Money::new(8, 50),
                 ),
                 MealsAttributes(
                     vec![Money::new(6, 83)],
-                    String::from("Harald"),
+                    String::from("Uriel"),
                     Money::new(6, 83),
                 ),
             ],
@@ -516,23 +516,23 @@ mod tests {
             vec![
                 MealsAttributes(
                     vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
-                    String::from("Peter"),
+                    String::from("Gabriel"),
                     Money::new(17, 00),
                 ),
                 MealsAttributes(
                     vec![Money::new(3, 50), Money::new(4, 42)],
-                    String::from("Mia"),
+                    String::from("Michael"),
                     Money::new(7, 50),
                 ),
                 MealsAttributes(
                     vec![Money::new(6, 83)],
-                    String::from("Harald"),
+                    String::from("Uriel"),
                     Money::new(6, 00),
                 ),
             ],
             NotAllPaidEnoughError::EnoughMoney(
                 Money::new(0, 63),
-                build_paid_less_hash_set(vec!(String::from("Mia"), String::from("Harald"))),
+                build_paid_less_hash_set(vec!(String::from("Michael"), String::from("Uriel"))),
             ),
         ),
         case(
@@ -588,23 +588,23 @@ mod tests {
             vec![
                 MealsAttributes(
                     vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
-                    String::from("Peter"),
+                    String::from("Gabriel"),
                     Money::new(16, 00),
                 ),
                 MealsAttributes(
                     vec![Money::new(3, 50), Money::new(4, 42)],
-                    String::from("Mia"),
+                    String::from("Michael"),
                     Money::new(7, 50),
                 ),
                 MealsAttributes(
                     vec![Money::new(6, 83)],
-                    String::from("Harald"),
+                    String::from("Uriel"),
                     Money::new(6, 00),
                 ),
             ],
             NotAllPaidEnoughError::Underpaid(
                 Money::new(0, 37),
-                build_paid_less_hash_set(vec!(String::from("Mia"), String::from("Harald"))),
+                build_paid_less_hash_set(vec!(String::from("Michael"), String::from("Uriel"))),
             ),
         ),
         case(
