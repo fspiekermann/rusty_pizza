@@ -16,4 +16,3 @@ impl fmt::Display for RemoveError {
 }
 
 impl Error for RemoveError {}
-
