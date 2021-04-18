@@ -49,6 +49,10 @@ impl Meal {
         self.id
     }
 
+    pub fn get_price(&self) -> Money {
+        self.price
+    }
+
     pub fn add_special(&mut self, description: String) -> &Special {
         let special = self.special_factory.create_special(description);
         let id = special.get_id();
@@ -56,15 +60,7 @@ impl Meal {
         self.specials.get(&id).unwrap()
     }
 
-    pub fn remove_special(&mut self, special: &Special) {
-        self.remove_special_by_id(special.get_id());
-    }
-
-    pub fn get_price(&self) -> Money {
-        self.price
-    }
-
-    pub fn remove_special_by_id(&mut self, id: u32) {
+    pub fn remove_special(&mut self, id: u32) {
         self.specials.remove(&id);
     }
 }
@@ -127,43 +123,6 @@ mod tests {
                 variety: String::from("groß"),
                 price: Money::new(5, 50),
                 specials: expected_specials,
-                special_factory: expected_special_factory,
-            }
-        );
-    }
-
-    #[test]
-    fn special_can_be_removed_from_meal() {
-        //Given
-        let mut special_factory = SpecialFactory::new();
-        let mut specials = HashMap::new();
-        let special = special_factory.create_special(String::from("Käserand"));
-        specials.insert(special.get_id(), special);
-        let mut meal = Meal {
-            id: 0,
-            meal_id: String::from("03"),
-            variety: String::from("groß"),
-            price: Money::new(5, 50),
-            specials,
-            special_factory,
-        };
-
-        let special = Special::new(0, String::from("Käserand"));
-
-        //When
-        meal.remove_special(&special);
-
-        //Then
-        let mut expected_special_factory = SpecialFactory::new();
-        expected_special_factory.create_special(String::from("Käserand"));
-        assert_eq!(
-            meal,
-            Meal {
-                id: 0,
-                meal_id: String::from("03"),
-                variety: String::from("groß"),
-                price: Money::new(5, 50),
-                specials: HashMap::new(),
                 special_factory: expected_special_factory,
             }
         );
@@ -233,7 +192,7 @@ mod tests {
         meal.add_special(String::from("Käserand"));
 
         // When:
-        meal.remove_special_by_id(0);
+        meal.remove_special(0);
 
         // Then:
         let mut expected_special_factory = SpecialFactory::new();
