@@ -1,4 +1,5 @@
 use crate::order_model::special::{Special, SpecialFactory};
+use crate::util::errors::RemoveError;
 use crate::util::id_provider::IdProvider;
 use crate::util::money::Money;
 use std::collections::HashMap;
@@ -60,8 +61,8 @@ impl Meal {
         self.specials.get_mut(&id).unwrap()
     }
 
-    pub fn remove_special(&mut self, id: u32) {
-        self.specials.remove(&id);
+    pub fn remove_special(&mut self, id: u32) -> Result<Special, RemoveError> {
+        self.specials.remove(&id).ok_or(RemoveError::NotFound)
     }
 }
 
@@ -212,9 +213,11 @@ mod tests {
         meal.add_special(String::from("Käserand"));
 
         // When:
-        meal.remove_special(0);
+        let special = meal.remove_special(0);
 
         // Then:
+        assert_eq!(special, Ok(Special::new(0, String::from("Käserand"))));
+        
         let mut expected_special_factory = SpecialFactory::new();
         expected_special_factory.create_special(String::from("Käserand"));
         assert_eq!(
@@ -226,6 +229,31 @@ mod tests {
                 price: Money::new(5, 50),
                 specials: HashMap::new(),
                 special_factory: expected_special_factory,
+            }
+        )
+    }
+
+    #[test]
+    fn remving_not_existing_special_returns_not_found() {
+        // Given:
+        let mut meal_factory = MealFactory::new();
+        let mut meal =
+            meal_factory.create_meal(String::from("03"), String::from("groß"), Money::new(5, 50));
+
+        // When:
+        let special = meal.remove_special(0);
+
+        // Then:
+        assert_eq!(special, Err(RemoveError::NotFound));
+        assert_eq!(
+            meal,
+            Meal {
+                id: 0,
+                meal_id: String::from("03"),
+                variety: String::from("groß"),
+                price: Money::new(5, 50),
+                specials: HashMap::new(),
+                special_factory: SpecialFactory::new(),
             }
         )
     }
