@@ -75,6 +75,7 @@ impl Meal {
         self.price
     }
 
+    /// Creates and adds a new special and returns a mutable reference to it.
     pub fn add_special(&mut self, description: String) -> &mut Special {
         let special = self.special_factory.create_special(description);
         let id = special.get_id();
