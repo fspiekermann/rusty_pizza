@@ -53,11 +53,11 @@ impl Meal {
         self.price
     }
 
-    pub fn add_special(&mut self, description: String) -> &Special {
+    pub fn add_special(&mut self, description: String) -> &mut Special {
         let special = self.special_factory.create_special(description);
         let id = special.get_id();
         self.specials.insert(id, special);
-        self.specials.get(&id).unwrap()
+        self.specials.get_mut(&id).unwrap()
     }
 
     pub fn remove_special(&mut self, id: u32) {
@@ -126,6 +126,26 @@ mod tests {
                 special_factory: expected_special_factory,
             }
         );
+    }
+
+    #[test]
+    fn added_special_is_mutable() {
+        //Given
+        let mut meal = Meal {
+            id: 0,
+            meal_id: String::from("03"),
+            variety: String::from("groß"),
+            price: Money::new(5, 50),
+            specials: HashMap::new(),
+            special_factory: SpecialFactory::new(),
+        };
+        let special = meal.add_special(String::from("Kaserand"));
+        
+        //When
+        special.set_description(String::from("Käserand"));
+
+        //Then
+        assert_eq!(special.get_description(), String::from("Käserand"));
     }
 
     #[test]

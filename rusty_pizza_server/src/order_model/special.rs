@@ -31,6 +31,14 @@ impl Special {
     pub fn get_id(&self) -> u32 {
         self.id
     }
+
+    pub fn get_description(&self) -> String {
+        self.description.clone()
+    }
+
+    pub fn set_description(&mut self, description: String) {
+        self.description = description;
+    }
 }
 
 #[cfg(test)]
