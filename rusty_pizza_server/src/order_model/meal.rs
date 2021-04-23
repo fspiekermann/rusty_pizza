@@ -42,7 +42,72 @@ impl<'a> Iterator for SpecialsMut<'a> {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+pub struct MealBuilder {
+    /// Number of the meal in the menu
+    meal_id: String,
+    /// Size of the pizza or noodle type etc.
+    variety: Option<String>,
+    specials: BTreeSet<String>,
+    price: Option<Money>,
+}
+
+impl MealBuilder {
+    pub fn new(meal_id: String) -> MealBuilder {
+        MealBuilder {
+            meal_id: meal_id,
+            variety: None,
+            specials: BTreeSet::new(),
+            price: None,
+        }
+    }
+
+    /// set variety of new Meal
+    pub fn variety<'a>(&'a mut self, variety: String) -> &'a mut MealBuilder {
+        self.variety = Some(variety);
+        self
+    }
+
+    /// Add a speciel to new Meal
+    pub fn special<'a>(&'a mut self, special: String) -> &'a mut MealBuilder {
+        self.specials.insert(special);
+        self
+    }
+
+    /// Add multiple specials to new Meal
+    pub fn specials<'a>(&'a mut self, specials: BTreeSet<String>) -> &'a mut MealBuilder {
+        self.specials.append(specials);
+        self
+    }
+
+    /// Add multiple specials to new Meal
+    pub fn special_slices<'a>(&'a mut self, slices: &[String]) -> &'a mut MealBuilder {
+        self.specials.push_all(slices.iter().collect());
+        self
+    }
+
+    pub fn price<'a>(&'a mut self, price: Money) -> &'a mut MealBuilder {
+        self.price = Some(price);
+        self
+    }
+
+    pub fn add_price<'a>(&'a mut self, price: Money) -> &'a mut MealBuilder {
+        self.price = match self.price {
+            Some(old) => Some(old + price),
+            None => Some(price),
+        };
+        self
+    }
+
+    pub fn diff_price<'a>(&'a mut self, price: Money) -> &'a mut MealBuilder {
+        self.price = match self.price {
+            Some(old) => Some(old + price),
+            None => Some(price),
+        };
+        self
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Meal {
     /// Unique ID of this meal
     id: u32,
@@ -56,7 +121,7 @@ pub struct Meal {
 }
 
 impl Meal {
-    pub fn new(id: u32, meal_id: String, variety: String, price: Money) -> Meal {
+    fn new(id: u32, meal_id: String, variety: String, price: Money) -> Meal {
         Meal {
             id,
             meal_id,
