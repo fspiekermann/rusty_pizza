@@ -8,17 +8,15 @@ use std::fmt;
 use std::rc::Rc;
 
 #[derive(Debug, PartialEq)]
-/// Not all user who take part in this Order has paid enough. The Error has two values:
-/// First the difference between paid money and has to pay
-/// Second a set of all users who have paid less.
+/// Not all users who take part in this Order have paid enough.
 pub enum NotAllPaidEnoughError {
-    /// There is to less Money which was paid
+    /// In total, not enough Money was paid
     Underpaid {
         underpaid: Money,
         paid_less: HashSet<Rc<User>>,
     },
-    /// There is enough money to pay the bill, but somebody did not paid enough
-    EnoughMoney {
+    /// There is enough money to pay the bill, but somebody did not pay enough
+    EnoughInTotal {
         change: Money,
         paid_less: HashSet<Rc<User>>,
     },
@@ -36,7 +34,7 @@ impl fmt::Display for NotAllPaidEnoughError {
                 "There are missing {:?} total amount!\n{:?} underpaid",
                 underpaid, paid_less
             ),
-            EnoughMoney { change, paid_less } => write!(
+            EnoughInTotal { change, paid_less } => write!(
                 f,
                 "We have enough money and will get {:?} change!\nBut {:?} underpaid",
                 change, paid_less
@@ -125,7 +123,7 @@ impl Order {
     }
 
     pub fn calculate_total_price(&self) -> Money {
-        let mut total_price = Money::new(0, 0);
+        let mut total_price = Money::zero();
         for single_order in self.meals.values() {
             total_price += single_order.calculate_total_price();
         }
@@ -133,7 +131,7 @@ impl Order {
     }
 
     pub fn calculate_total_tip(&self) -> Money {
-        let mut total_tip = Money::new(0, 0);
+        let mut total_tip = Money::zero();
         for single_order in self.meals.values() {
             total_tip += single_order.get_tip();
         }
@@ -141,8 +139,8 @@ impl Order {
     }
 
     pub fn calculate_total_change(&self) -> Result<Money, NotAllPaidEnoughError> {
-        let mut total_change = Money::new(0, 0);
-        let mut underpaid = Money::new(0, 0);
+        let mut total_change = Money::zero();
+        let mut underpaid = Money::zero();
         let mut paid_less: HashSet<Rc<User>> = HashSet::new();
         for single_order in self.meals.values() {
             match single_order.calculate_change() {
@@ -156,7 +154,7 @@ impl Order {
         if underpaid.get_total_cents() == 0 {
             Ok(total_change)
         } else if total_change > underpaid {
-            Err(NotAllPaidEnoughError::EnoughMoney {
+            Err(NotAllPaidEnoughError::EnoughInTotal {
                 change: total_change - underpaid,
                 paid_less,
             })
@@ -322,17 +320,17 @@ mod tests {
                 MealsAttributes {
                     meal_price: vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
                     orderer: String::from("Gabriel"),
-                    amount: Money::new(0, 0),
+                    amount: Money::zero(),
                 },
                 MealsAttributes {
                     meal_price: vec![Money::new(3, 50), Money::new(4, 42)],
                     orderer: String::from("Michael"),
-                    amount: Money::new(0, 0),
+                    amount: Money::zero(),
                 },
                 MealsAttributes {
                     meal_price: vec![Money::new(6, 83)],
                     orderer: String::from("Uriel"),
-                    amount: Money::new(0, 0),
+                    amount: Money::zero(),
                 },
             ],
             Money::new(29, 87)),
@@ -341,12 +339,12 @@ mod tests {
                 MealsAttributes {
                     meal_price: vec![Money::new(2, 25), Money::new(4, 42)],
                     orderer: String::from("Adam"),
-                    amount: Money::new(0, 0),
+                    amount: Money::zero(),
                 },
                 MealsAttributes {
                     meal_price: vec![Money::new(5, 50)],
                     orderer: String::from("Eva"),
-                    amount: Money::new(0, 0),
+                    amount: Money::zero(),
                 },
             ],
             Money::new(12, 17)),
@@ -530,7 +528,7 @@ mod tests {
                     amount: Money::new(6, 00),
                 },
             ],
-            NotAllPaidEnoughError::EnoughMoney{
+            NotAllPaidEnoughError::EnoughInTotal{
                 change: Money::new(0, 63),
                 paid_less: build_paid_less_hash_set(vec!(String::from("Michael"), String::from("Uriel"))),
             },
@@ -548,7 +546,7 @@ mod tests {
                     amount: Money::new(5, 00),
                 },
             ],
-            NotAllPaidEnoughError::EnoughMoney{
+            NotAllPaidEnoughError::EnoughInTotal{
                 change: Money::new(1, 08),
                 paid_less: build_paid_less_hash_set(vec!(String::from("Eva"))),
             },
