@@ -29,7 +29,7 @@ impl ChangeMoneyError {
     pub fn get_value(&self) -> Money {
         use ChangeMoneyError::*;
         match *self {
-            Underpaid(missing) => missing.clone(),
+            Underpaid(missing) => missing,
         }
     }
 }
