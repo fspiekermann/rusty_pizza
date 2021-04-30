@@ -1,10 +1,8 @@
 use crate::order_model::meal::Meal;
-use crate::order_model::user::User;
 use crate::util::money::Money;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
-use std::rc::Rc;
 
 #[derive(Debug, PartialEq)]
 pub enum ChangeMoneyError {
@@ -40,7 +38,8 @@ impl Error for ChangeMoneyError {}
 pub struct Meals {
     /// Meal by unique ID
     meals: HashMap<u32, Meal>,
-    owner: Rc<User>,
+    /// User ID of this `Meals` owner
+    owner_id: u32,
     /// Whether the meals selection has been completed
     ready: bool,
     paid: Money,
@@ -48,10 +47,10 @@ pub struct Meals {
 }
 
 impl Meals {
-    pub fn new(user: Rc<User>) -> Meals {
+    pub fn new(user_id: u32) -> Meals {
         Meals {
             meals: HashMap::new(),
-            owner: user,
+            owner_id: user_id,
             ready: false,
             paid: Money::new(0, 0),
             tip: Money::new(0, 0),
@@ -64,8 +63,8 @@ impl Meals {
         self.meals.get_mut(&id).unwrap()
     }
 
-    pub fn get_owner(&self) -> Rc<User> {
-        self.owner.clone()
+    pub fn get_owner_id(&self) -> u32 {
+        self.owner_id
     }
 
     pub fn set_paid(&mut self, paid: Money) {
@@ -135,17 +134,17 @@ mod tests {
     #[test]
     fn meals_can_be_created() {
         // Given:
-        let user = Rc::new(User::new(String::from("Peter")));
+        let user_id = 0;
 
         // When:
-        let meals = Meals::new(user.clone());
+        let meals = Meals::new(user_id);
 
         // Then:
         assert_eq!(
             meals,
             Meals {
                 meals: HashMap::new(),
-                owner: user,
+                owner_id: user_id,
                 ready: false,
                 paid: Money::new(0, 0),
                 tip: Money::new(0, 0),
@@ -156,8 +155,8 @@ mod tests {
     #[test]
     fn meal_can_be_added_to_meals() {
         // Given:
-        let user = Rc::new(User::new(String::from("Peter")));
-        let mut meals = Meals::new(user.clone());
+        let user_id = 0;
+        let mut meals = Meals::new(user_id);
 
         let meal = Meal::new(
             0,
@@ -194,7 +193,7 @@ mod tests {
             meals,
             Meals {
                 meals: expected_meals,
-                owner: user,
+                owner_id: user_id,
                 ready: false,
                 paid: Money::new(0, 0),
                 tip: Money::new(0, 0),
@@ -208,8 +207,8 @@ mod tests {
     )]
     fn total_price_is_calculated_correctly(prices: Vec<Money>, expected_total: Money) {
         //Given
-        let user = Rc::new(User::new(String::from("Peter")));
-        let mut meals = Meals::new(user);
+        let user_id = 0;
+        let mut meals = Meals::new(user_id);
         let mut meal_factory = MealFactory::new();
 
         for price in prices.into_iter() {
@@ -234,8 +233,8 @@ mod tests {
         expected_change: Money,
     ) {
         //Given
-        let user = Rc::new(User::new(String::from("Peter")));
-        let mut meals = Meals::new(user);
+        let user_id = 0;
+        let mut meals = Meals::new(user_id);
         meals.set_paid(paid);
         meals.set_tip(tip);
         let mut meal_factory = MealFactory::new();
@@ -262,8 +261,8 @@ mod tests {
         expected_change: ChangeMoneyError,
     ) {
         //Given
-        let user = Rc::new(User::new(String::from("Peter")));
-        let mut meals = Meals::new(user);
+        let user_id = 0;
+        let mut meals = Meals::new(user_id);
         meals.set_paid(paid);
         meals.set_tip(tip);
         let mut meal_factory = MealFactory::new();
@@ -310,8 +309,8 @@ mod tests {
         remaining_length: usize,
     ) {
         // Given:
-        let user = Rc::new(User::new(String::from("Peter")));
-        let mut meals = Meals::new(user.clone());
+        let user_id = 0;
+        let mut meals = Meals::new(user_id);
 
         let meal_1 = Meal::new(
             0,
@@ -357,8 +356,8 @@ mod tests {
         remaining_length: usize,
     ) {
         // Given:
-        let user = Rc::new(User::new(String::from("Peter")));
-        let mut meals = Meals::new(user.clone());
+        let user_id = 0;
+        let mut meals = Meals::new(user_id);
 
         let meal_1 = Meal::new(
             0,
