@@ -4,7 +4,6 @@ use crate::util::id_provider::IdProvider;
 use crate::util::money::Money;
 use std::collections::HashMap;
 use std::iter::Iterator;
-use std::collections::BTreeSet;
 use std::error::Error;
 use std::fmt;
 
@@ -67,8 +66,9 @@ pub struct MealBuilder {
     meal_id: String,
     /// Size of the pizza or noodle type etc.
     variety: Option<String>,
-    specials: BTreeSet<String>,
     price: Option<Money>,
+    specials: HashMap<u32, Special>,
+    special_factory: SpecialFactory,
 }
 
 impl MealBuilder {
@@ -76,8 +76,9 @@ impl MealBuilder {
         MealBuilder {
             meal_id: meal_id,
             variety: None,
-            specials: BTreeSet::new(),
             price: None,
+            specials: HashMap::new(),
+            special_factory: SpecialFactory::new(),
         }
     }
 
@@ -87,21 +88,21 @@ impl MealBuilder {
         self
     }
 
-    /// Add a speciel to new Meal
-    pub fn special<'a>(&'a mut self, special: String) -> &'a mut MealBuilder {
-        self.specials.insert(special);
+    /// Add a special to new Meal
+    pub fn special<'a>(&'a mut self, description: String) -> &'a mut MealBuilder {
+        let special = self.special_factory.create_special(description);
+        let id = special.get_id();
+        self.specials.insert(id, special);
         self
     }
 
     /// Add multiple specials to new Meal
-    pub fn specials<'a>(&'a mut self, specials: &mut BTreeSet<String>) -> &'a mut MealBuilder {
-        self.specials.append(specials);
-        self
-    }
-
-    /// Add multiple specials to new Meal
-    pub fn special_slices<'a>(&'a mut self, slices: &[String]) -> &'a mut MealBuilder {
-        self.specials.append(&mut slices.iter().map(|slice| slice.to_string()).collect());
+    pub fn specials<'a>(&'a mut self, descriptions: &[String]) -> &'a mut MealBuilder {
+        let specials = descriptions.iter().
+            map(|description| self.special_factory.create_special(description.to_string())).
+            map(|special| (special.get_id(), special)).
+            collect::<HashMap<u32, Special>>();
+        self.specials.extend(specials);
         self
     }
 
@@ -117,7 +118,7 @@ impl MealBuilder {
         };
         self
     }
-//TODO:
+
     pub fn diff_price<'a>(&'a mut self, price: Money) -> Result<&'a mut MealBuilder, BuildPriceError> {
         self.price = match self.price {
             Some(old) if old >= price => Some(old - price),
@@ -128,14 +129,16 @@ impl MealBuilder {
         Ok(self)
     }
 
-//     pub fn special_with_price<'a>(&'a mut self, special: String, price: Money) -> &'a mut MealBuilder {
-//         self.special(special).add_price(price);
-//         self
-//     }
+    pub fn special_with_price<'a>(&'a mut self, description: String, price: Money) -> &'a mut MealBuilder {
+        self.special(description).add_price(price)
+    }
 
-//     pub fn specials_with_prices<'a>(&'a mut self, specials_prices: &[(String, Money)]) -> &'a mut MealBuilder {
-//         self
-//     }
+    pub fn specials_with_prices<'a>(&'a mut self, descriptions_prices: &[(String, Money)]) -> &'a mut MealBuilder {
+        for (description, price) in descriptions_prices.iter() {
+            self.special(description.to_string()).add_price(*price);
+        }
+        self
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -160,6 +163,17 @@ impl Meal {
             price,
             specials: HashMap::new(),
             special_factory: SpecialFactory::new(),
+        }
+    }
+
+    fn from_builder(id: u32, meal_id: String, variety: String, price: Money, specials: HashMap<u32, Special>, special_factory: SpecialFactory) -> Meal {
+        Meal {
+            id,
+            meal_id,
+            variety,
+            price,
+            specials,
+            special_factory,
         }
     }
 
