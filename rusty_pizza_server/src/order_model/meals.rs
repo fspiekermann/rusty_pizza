@@ -25,6 +25,15 @@ impl fmt::Display for ChangeMoneyError {
     }
 }
 
+impl ChangeMoneyError {
+    pub fn get_value(&self) -> Money {
+        use ChangeMoneyError::*;
+        match *self {
+            Underpaid(missing) => missing,
+        }
+    }
+}
+
 impl Error for ChangeMoneyError {}
 
 #[derive(Debug, PartialEq)]
@@ -55,8 +64,16 @@ impl Meals {
         self.meals.get_mut(&id).unwrap()
     }
 
+    pub fn get_owner(&self) -> Rc<User> {
+        self.owner.clone()
+    }
+
     pub fn set_paid(&mut self, paid: Money) {
         self.paid = paid;
+    }
+
+    pub fn get_tip(&self) -> Money {
+        self.tip
     }
 
     pub fn set_tip(&mut self, tip: Money) {

@@ -1,7 +1,7 @@
 use std::fmt::{self, Display, Formatter};
 use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 
-#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Eq, Hash, Copy, Clone)]
 pub struct Money {
     cents: u32,
 }
@@ -17,6 +17,13 @@ impl Money {
     pub fn new(euros: u32, cents: u8) -> Money {
         Money {
             cents: euros * 100 + cents as u32,
+        }
+    }
+
+    /// Creates a new `Money` instance from 0 `euros` and 0 `cents` <==> 0,00€.
+    pub fn zero() -> Money {
+        Money {
+            cents: 0,
         }
     }
 
