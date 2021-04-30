@@ -502,11 +502,7 @@ mod tests {
     }
 
     fn build_paid_less_hash_set(names: Vec<String>) -> HashSet<Rc<User>> {
-        let mut paid_less: HashSet<Rc<User>> = HashSet::new();
-        for name in names {
-            paid_less.insert(Rc::new(User::new(name)));
-        }
-        return paid_less;
+        names.iter().map(|name| Rc::new(User::new(name.clone()))).collect()
     }
 
     #[rstest(meals_attributes, expected_change,
