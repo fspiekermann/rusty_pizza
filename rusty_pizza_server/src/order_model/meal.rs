@@ -4,6 +4,25 @@ use crate::util::id_provider::IdProvider;
 use crate::util::money::Money;
 use std::collections::HashMap;
 use std::iter::Iterator;
+use std::collections::BTreeSet;
+use std::error::Error;
+use std::fmt;
+
+#[derive(Debug, PartialEq)]
+pub enum BuildPriceError<'a> {
+    NegativePriceBuilded(Money, &'a mut MealBuilder), 
+}
+
+impl fmt::Display for BuildPriceError<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use BuildPriceError::*;
+        match &*self {
+            NegativePriceBuilded(negative, _builder) => write!( f, "You have set a negative price: -{:?}", negative),
+        }
+    }
+}
+
+impl Error for BuildPriceError<'_> {}
 
 #[derive(Debug, PartialEq)]
 pub struct MealFactory {
@@ -42,6 +61,7 @@ impl<'a> Iterator for SpecialsMut<'a> {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct MealBuilder {
     /// Number of the meal in the menu
     meal_id: String,
@@ -74,14 +94,14 @@ impl MealBuilder {
     }
 
     /// Add multiple specials to new Meal
-    pub fn specials<'a>(&'a mut self, specials: BTreeSet<String>) -> &'a mut MealBuilder {
+    pub fn specials<'a>(&'a mut self, specials: &mut BTreeSet<String>) -> &'a mut MealBuilder {
         self.specials.append(specials);
         self
     }
 
     /// Add multiple specials to new Meal
     pub fn special_slices<'a>(&'a mut self, slices: &[String]) -> &'a mut MealBuilder {
-        self.specials.push_all(slices.iter().collect());
+        self.specials.append(&mut slices.iter().map(|slice| slice.to_string()).collect());
         self
     }
 
@@ -97,17 +117,28 @@ impl MealBuilder {
         };
         self
     }
-
-    pub fn diff_price<'a>(&'a mut self, price: Money) -> &'a mut MealBuilder {
+//TODO:
+    pub fn diff_price<'a>(&'a mut self, price: Money) -> Result<&'a mut MealBuilder, BuildPriceError> {
         self.price = match self.price {
-            Some(old) => Some(old + price),
-            None => Some(price),
+            Some(old) if old >= price => Some(old - price),
+            Some(old) if old < price => return Err(BuildPriceError::NegativePriceBuilded(price - old, self)),
+            None => return Err(BuildPriceError::NegativePriceBuilded(price, self)),
+            _ => panic!("This should not be possible to reach"),
         };
-        self
+        Ok(self)
     }
+
+//     pub fn special_with_price<'a>(&'a mut self, special: String, price: Money) -> &'a mut MealBuilder {
+//         self.special(special).add_price(price);
+//         self
+//     }
+
+//     pub fn specials_with_prices<'a>(&'a mut self, specials_prices: &[(String, Money)]) -> &'a mut MealBuilder {
+//         self
+//     }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Meal {
     /// Unique ID of this meal
     id: u32,
