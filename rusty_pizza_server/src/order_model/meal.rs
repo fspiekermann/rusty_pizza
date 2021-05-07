@@ -72,9 +72,9 @@ pub struct MealBuilder {
 }
 
 impl MealBuilder {
-    pub fn new(meal_id: String) -> MealBuilder {
+    pub fn new() -> MealBuilder {
         MealBuilder {
-            meal_id: meal_id,
+            meal_id: None,
             variety: None,
             price: None,
             specials: HashMap::new(),
@@ -82,7 +82,13 @@ impl MealBuilder {
         }
     }
 
-    /// set variety of new Meal
+    /// Set meal_id of new Meal
+    pub fn meal_id<'a>(&'a mut self, meal_id: String) -> &'a mut MealBuilder {
+        self.meal_id = Some(meal_id);
+        self
+    }
+
+    /// Set variety of new Meal
     pub fn variety<'a>(&'a mut self, variety: String) -> &'a mut MealBuilder {
         self.variety = Some(variety);
         self
@@ -106,11 +112,13 @@ impl MealBuilder {
         self
     }
 
+    /// Set total price of new Meal
     pub fn price<'a>(&'a mut self, price: Money) -> &'a mut MealBuilder {
         self.price = Some(price);
         self
     }
 
+    /// Add a new Price to the total price to set the new total price of new Meal
     pub fn add_price<'a>(&'a mut self, price: Money) -> &'a mut MealBuilder {
         self.price = match self.price {
             Some(old) => Some(old + price),
@@ -119,6 +127,7 @@ impl MealBuilder {
         self
     }
 
+    /// Subtract a new Price from the total price to set the new total price of new Meal
     pub fn diff_price<'a>(&'a mut self, price: Money) -> Result<&'a mut MealBuilder, BuildPriceError> {
         self.price = match self.price {
             Some(old) if old >= price => Some(old - price),
@@ -129,10 +138,12 @@ impl MealBuilder {
         Ok(self)
     }
 
+    /// Add a special and its price to new Meal
     pub fn special_with_price<'a>(&'a mut self, description: String, price: Money) -> &'a mut MealBuilder {
         self.special(description).add_price(price)
     }
 
+    /// Add multiple specials and their prices to new Meal
     pub fn specials_with_prices<'a>(&'a mut self, descriptions_prices: &[(String, Money)]) -> &'a mut MealBuilder {
         for (description, price) in descriptions_prices.iter() {
             self.special(description.to_string()).add_price(*price);
