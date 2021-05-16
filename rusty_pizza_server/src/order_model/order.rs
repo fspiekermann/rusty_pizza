@@ -90,12 +90,14 @@ pub struct Order {
 
 impl Order {
     pub fn new(manager_id: u32) -> Order {
-        Order {
+        let mut order = Order {
             meals: HashMap::new(),
             status: OrderStatus::Open,
             manager_id,
             meal_factory: MealFactory::new(),
-        }
+        };
+        order.add_user(manager_id);
+        order
     }
 
     pub fn add_user(&mut self, user_id: u32) -> &mut Meals {
@@ -178,10 +180,13 @@ mod tests {
     fn order_can_be_created() {
         //Given
         let user_id = 0;
+
         //When
         let order = Order::new(user_id);
+
         //Then
-        assert_eq!(order.meals.len(), 0);
+        assert_eq!(order.meals.len(), 1);
+        assert_eq!(order.meals[&user_id], Meals::new(user_id));
         assert_eq!(order.status, OrderStatus::Open);
         assert_eq!(order.manager_id, user_id);
     }
@@ -199,7 +204,7 @@ mod tests {
 
         //Then
         assert_eq!(meal, &mut Meals::new(user_id));
-        assert_eq!(order.meals.len(), 1);
+        assert_eq!(order.meals.len(), 2);
         assert_eq!(order.meals[&user_id], Meals::new(user_id));
         assert_eq!(order.status, OrderStatus::Open);
         assert_eq!(order.manager_id, manager_id);
