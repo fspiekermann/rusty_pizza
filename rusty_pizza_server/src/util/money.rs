@@ -22,9 +22,7 @@ impl Money {
 
     /// Creates a new `Money` instance from 0 `euros` and 0 `cents` <==> 0,00€.
     pub fn zero() -> Money {
-        Money {
-            cents: 0,
-        }
+        Money { cents: 0 }
     }
 
     pub fn get_euros(&self) -> u32 {
