@@ -1,5 +1,5 @@
 /// A usually unique ID referencing an entity.
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Id {
     value: u32,
 }

@@ -1,3 +1,4 @@
+use crate::util::id::Id;
 use crate::util::id_provider::IdProvider;
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -17,19 +18,19 @@ impl SpecialFactory {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Special {
-    id: u32,
+    id: Id,
     description: String,
 }
 
 impl Special {
-    pub fn new(id: u32, description: String) -> Special {
+    pub fn new(id: Id, description: String) -> Special {
         Special { id, description }
     }
 
-    pub fn get_id(&self) -> u32 {
-        self.id
+    pub fn get_id(&self) -> Id {
+        self.id.clone()
     }
 
     pub fn get_description(&self) -> String {
@@ -48,13 +49,13 @@ mod tests {
     #[test]
     fn special_can_be_created() {
         // When:
-        let special = Special::new(0, String::from("Käserand"));
+        let special = Special::new(Id::new(0), String::from("Käserand"));
 
         // Then:
         assert_eq!(
             special,
             Special {
-                id: 0,
+                id: Id::new(0),
                 description: String::from("Käserand")
             }
         );
@@ -72,7 +73,7 @@ mod tests {
         assert_eq!(
             special,
             Special {
-                id: 0,
+                id: Id::new(0),
                 description: String::from("Käserand")
             }
         );
