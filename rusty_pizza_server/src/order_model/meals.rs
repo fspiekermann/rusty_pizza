@@ -1,4 +1,4 @@
-use crate::order_model::meal::Meal;
+use crate::order_model::meal::{Meal, MealFactory}; //MealBuilder
 use crate::util::money::Money;
 use std::collections::HashMap;
 use std::error::Error;
@@ -44,6 +44,7 @@ pub struct Meals {
     ready: bool,
     paid: Money,
     tip: Money,
+    meal_factory: MealFactory,
 }
 
 impl Meals {
@@ -54,6 +55,7 @@ impl Meals {
             ready: false,
             paid: Money::new(0, 0),
             tip: Money::new(0, 0),
+            meal_factory: MealFactory::new(),
         }
     }
 
@@ -95,22 +97,6 @@ impl Meals {
         return Ok(self.paid - has_to_pay);
     }
 
-    /// Removes the given `Meal` from `meals` and returns `true` if succeeded
-    ///
-    /// # Arguments
-    ///
-    /// * `meal` - The `Meal` object to remove
-    ///
-    /// # Return
-    ///
-    /// * boolean value if succeeded or not
-    pub fn remove_meal(&mut self, meal: Meal) -> bool {
-        match self.meals.remove(&meal.get_id()) {
-            Some(_) => return true,
-            None => return false,
-        }
-    }
-
     /// Removes a `Meal` belonging to the given `id` from `meals` and returns the removed `Meal` object if succeeded
     ///
     /// # Arguments
@@ -129,7 +115,7 @@ impl Meals {
 mod tests {
     use super::*;
     use crate::order_model::meal::MealFactory;
-    use rstest::rstest;
+    use rstest::*;
 
     #[test]
     fn meals_can_be_created() {
@@ -148,6 +134,7 @@ mod tests {
                 ready: false,
                 paid: Money::new(0, 0),
                 tip: Money::new(0, 0),
+                meal_factory: MealFactory::new(),
             }
         );
     }
@@ -158,37 +145,31 @@ mod tests {
         let user_id = 0;
         let mut meals = Meals::new(user_id);
 
-        let meal = Meal::new(
-            0,
-            String::from("03"),
-            String::from("groß"),
-            Money::new(5, 50),
+        let meal_id = String::from("03");
+        let variety = String::from("groß");
+        let price = Money::new(5, 50);
+
+        let meal = meals.meal_factory.create_meal(
+            meal_id.clone(),
+            variety.clone(),
+            price.clone(),
         );
 
         // When:
         let added = meals.add_meal(meal);
+        let mut expected_meals = HashMap::new();
+        expected_meals.insert(0, MealFactory::new().create_meal(
+            meal_id.clone(),
+            variety.clone(),
+            price.clone(),
+        ));
 
         // Then:
-        assert_eq!(
-            added,
-            &Meal::new(
-                0,
-                String::from("03"),
-                String::from("groß"),
-                Money::new(5, 50),
-            )
-        );
-
-        let mut expected_meals = HashMap::new();
-        expected_meals.insert(
-            0,
-            Meal::new(
-                0,
-                String::from("03"),
-                String::from("groß"),
-                Money::new(5, 50),
-            ),
-        );
+        assert_eq!(added, &MealFactory::new().create_meal(
+            meal_id.clone(),
+            variety.clone(),
+            price.clone(),
+        ));
         assert_eq!(
             meals,
             Meals {
@@ -197,6 +178,7 @@ mod tests {
                 ready: false,
                 paid: Money::new(0, 0),
                 tip: Money::new(0, 0),
+                meal_factory: MealFactory::start_by(1),
             }
         );
     }
@@ -209,11 +191,10 @@ mod tests {
         //Given
         let user_id = 0;
         let mut meals = Meals::new(user_id);
-        let mut meal_factory = MealFactory::new();
 
         for price in prices.into_iter() {
             let meal =
-                meal_factory.create_meal(String::from("XX"), String::from("something"), price);
+                meals.meal_factory.create_meal(String::from("XX"), String::from("something"), price);
             meals.add_meal(meal);
         }
         //When
@@ -237,11 +218,10 @@ mod tests {
         let mut meals = Meals::new(user_id);
         meals.set_paid(paid);
         meals.set_tip(tip);
-        let mut meal_factory = MealFactory::new();
 
         for price in prices.into_iter() {
             let meal =
-                meal_factory.create_meal(String::from("XX"), String::from("something"), price);
+                meals.meal_factory.create_meal(String::from("XX"), String::from("something"), price);
             meals.add_meal(meal);
         }
         //When
@@ -265,11 +245,10 @@ mod tests {
         let mut meals = Meals::new(user_id);
         meals.set_paid(paid);
         meals.set_tip(tip);
-        let mut meal_factory = MealFactory::new();
 
         for price in prices.into_iter() {
             let meal =
-                meal_factory.create_meal(String::from("XX"), String::from("something"), price);
+                meals.meal_factory.create_meal(String::from("XX"), String::from("something"), price);
             meals.add_meal(meal);
         }
         //When
@@ -278,104 +257,56 @@ mod tests {
         assert_eq!(Err(expected_change), change);
     }
 
-    #[rstest(
-        to_remove,
-        expected_result,
-        remaining_length,
-        case(
-            Meal::new(0, String::from("03"), String::from("groß"), Money::new(5, 50)),
-            true,
-            1
-        ),
-        case(
-            Meal::new(1, String::from("35"), String::from("Spaghetti"), Money::new(4, 35)),
-            true,
-            1
-        ),
-        case(
-            Meal::new(
-                2,
-                String::from("42"),
-                String::from("Kräuterbutter"),
-                Money::new(2, 25)
-            ),
-            false,
-            2
-        )
-    )]
-    fn meal_can_be_removed_from_meals(
-        to_remove: Meal,
-        expected_result: bool,
-        remaining_length: usize,
-    ) {
-        // Given:
-        let user_id = 0;
-        let mut meals = Meals::new(user_id);
-
-        let meal_1 = Meal::new(
-            0,
+    #[fixture]
+    fn some_meals() -> HashMap<u32, Meal> {
+        let mut meals = HashMap::new();
+        let mut meal_factory = MealFactory::new();
+        let meal = meal_factory.create_meal(
             String::from("03"),
             String::from("groß"),
             Money::new(5, 50),
         );
-        let meal_2 = Meal::new(
-            1,
+        let mut id = meal.get_id();
+        meals.insert(id, meal);
+        let meal = meal_factory.create_meal(
             String::from("35"),
             String::from("Spaghetti"),
             Money::new(4, 35),
         );
-
-        meals.add_meal(meal_1);
-        meals.add_meal(meal_2);
-        // When:
-        let removed = meals.remove_meal(to_remove);
-        // Then:
-        assert_eq!(expected_result, removed);
-        assert_eq!(remaining_length, meals.meals.len());
+        id = meal.get_id();
+        meals.insert(id, meal);
+        meals
     }
 
-    #[rstest(
-        id,
-        expected_removed,
-        remaining_length,
-        case(
-            0,
-            Some(Meal::new(0, String::from("03"), String::from("groß"), Money::new(5, 50))),
-            1
-        ),
-        case(
-            1,
-            Some(Meal::new(1, String::from("35"), String::from("Spaghetti"), Money::new(4, 35))),
-            1
-        ),
-        case(2, None, 2)
-    )]
+    #[rstest]
+    #[case(0, 1)]
+    #[case(1, 1)]
+    #[case(2, 2)]
     fn meal_can_be_removed_from_meals_by_id(
-        id: u32,
-        expected_removed: Option<Meal>,
-        remaining_length: usize,
+        #[case] to_remove_id: u32,
+        #[case] remaining_length: usize,
+        some_meals: HashMap<u32, Meal>
     ) {
         // Given:
         let user_id = 0;
         let mut meals = Meals::new(user_id);
 
-        let meal_1 = Meal::new(
-            0,
-            String::from("03"),
-            String::from("groß"),
-            Money::new(5, 50),
-        );
-        let meal_2 = Meal::new(
-            1,
-            String::from("35"),
-            String::from("Spaghetti"),
-            Money::new(4, 35),
-        );
+        // let expected_removed = some_meals.get(&to_remove_id);
+        // let expected_removed = some_meals.get(&to_remove_id);
+        let mut expected_removed: Option<Meal> = None;
 
-        meals.add_meal(meal_1);
-        meals.add_meal(meal_2);
+        for (id, some_meal) in some_meals.into_iter(){
+            if id == to_remove_id {
+                expected_removed = Some(MealFactory::start_by(id).create_meal(
+                    some_meal.get_meal_id(),
+                    some_meal.get_variety(),
+                    some_meal.get_price()
+                ));
+            }
+            meals.add_meal(some_meal);
+        }
         // When:
-        let removed_meal = meals.remove_meal_by_id(id);
+        let removed_meal = meals.remove_meal_by_id(to_remove_id);
         // Then:
         assert_eq!(expected_removed, removed_meal);
         assert_eq!(remaining_length, meals.meals.len());

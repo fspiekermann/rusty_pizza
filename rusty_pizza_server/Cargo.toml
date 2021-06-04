@@ -9,4 +9,4 @@ edition = "2018"
 [dependencies]
 
 [dev-dependencies]
-rstest = "0.6.4"
+rstest = "0.10.0"

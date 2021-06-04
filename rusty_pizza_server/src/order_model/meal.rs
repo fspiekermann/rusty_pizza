@@ -35,8 +35,18 @@ impl MealFactory {
         }
     }
 
+    pub fn start_by(starting_value: u32) -> MealFactory {
+        MealFactory {
+            id_provider: IdProvider::start_by(starting_value),
+        }
+    }
+
     pub fn create_meal(&mut self, meal_id: String, variety: String, price: Money) -> Meal {
-        Meal::new(self.id_provider.generate_next(), meal_id, variety, price)
+        Meal::new(self.id_provider.generate_next(), meal_id, variety, price, HashMap::new(), SpecialFactory::new())
+    }
+
+    pub fn create_meal_with_specials(&mut self, meal_id: String, variety: String, price: Money, specials: HashMap<u32, Special>, special_factory: SpecialFactory,) -> Meal {
+        Meal::new(self.id_provider.generate_next(), meal_id, variety, price, specials, special_factory)
     }
 }
 
@@ -63,7 +73,7 @@ impl<'a> Iterator for SpecialsMut<'a> {
 #[derive(Debug, PartialEq)]
 pub struct MealBuilder {
     /// Number of the meal in the menu
-    meal_id: String,
+    meal_id: Option<String>,
     /// Size of the pizza or noodle type etc.
     variety: Option<String>,
     price: Option<Money>,
@@ -150,6 +160,16 @@ impl MealBuilder {
         }
         self
     }
+
+    pub fn meal(self, meal_factory: &mut MealFactory) -> Meal {
+        meal_factory.create_meal_with_specials(
+            self.meal_id.unwrap_or(String::from("")),
+            self.variety.unwrap_or(String::from("")),
+            self.price.unwrap_or(Money::new(0,0)),
+            self.specials,
+            self.special_factory,
+        )
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -166,18 +186,7 @@ pub struct Meal {
 }
 
 impl Meal {
-    fn new(id: u32, meal_id: String, variety: String, price: Money) -> Meal {
-        Meal {
-            id,
-            meal_id,
-            variety,
-            price,
-            specials: HashMap::new(),
-            special_factory: SpecialFactory::new(),
-        }
-    }
-
-    fn from_builder(id: u32, meal_id: String, variety: String, price: Money, specials: HashMap<u32, Special>, special_factory: SpecialFactory) -> Meal {
+    fn new(id: u32, meal_id: String, variety: String, price: Money, specials: HashMap<u32, Special>, special_factory: SpecialFactory) -> Meal {
         Meal {
             id,
             meal_id,
@@ -190,6 +199,14 @@ impl Meal {
 
     pub fn get_id(&self) -> u32 {
         self.id
+    }
+
+    pub fn get_meal_id(&self) -> String {
+        self.meal_id.clone()
+    }
+
+    pub fn get_variety(&self) -> String {
+        self.variety.clone()
     }
 
     pub fn get_price(&self) -> Money {
@@ -229,6 +246,8 @@ mod tests {
             String::from("03"),
             String::from("groß"),
             Money::new(5, 50),
+            HashMap::new(),
+            SpecialFactory::new(),
         );
 
         // Then:
@@ -445,5 +464,28 @@ mod tests {
             Some(&mut Special::new(0, String::from("Käserand")))
         );
         assert_eq!(specials.next(), None);
+    }
+
+    #[test]
+    fn meal_builder_create_meal_with_default_values() {
+        // Given:
+        let mut meal_factory = MealFactory::new();
+        let meal_builder = MealBuilder::new();
+        
+        // When:
+        let meal = meal_builder.meal(&mut meal_factory);
+
+        // Then:
+        assert_eq!(
+            meal,
+            Meal {
+                id: 0,
+                meal_id: String::from(""),
+                variety: String::from(""),
+                price: Money::new(0, 0),
+                specials: HashMap::new(),
+                special_factory: SpecialFactory::new(),
+            }
+        )
     }
 }
