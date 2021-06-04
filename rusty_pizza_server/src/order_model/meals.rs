@@ -291,8 +291,6 @@ mod tests {
         let user_id = 0;
         let mut meals = Meals::new(user_id);
 
-        // let expected_removed = some_meals.get(&to_remove_id);
-        // let expected_removed = some_meals.get(&to_remove_id);
         let mut expected_removed: Option<Meal> = None;
 
         for (id, some_meal) in some_meals.into_iter(){

@@ -8,20 +8,20 @@ use std::error::Error;
 use std::fmt;
 
 #[derive(Debug, PartialEq)]
-pub enum BuildPriceError<'a> {
-    NegativePriceBuilded(Money, &'a mut MealBuilder), 
+pub enum BuildPriceError {
+    NegativePriceBuilded(Money), 
 }
 
-impl fmt::Display for BuildPriceError<'_> {
+impl fmt::Display for BuildPriceError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use BuildPriceError::*;
         match &*self {
-            NegativePriceBuilded(negative, _builder) => write!( f, "You have set a negative price: -{:?}", negative),
+            NegativePriceBuilded(negative_amount) => write!( f, "You have set a negative price: -{:?}", negative_amount),
         }
     }
 }
 
-impl Error for BuildPriceError<'_> {}
+impl Error for BuildPriceError {}
 
 #[derive(Debug, PartialEq)]
 pub struct MealFactory {
@@ -141,8 +141,8 @@ impl MealBuilder {
     pub fn diff_price<'a>(&'a mut self, price: Money) -> Result<&'a mut MealBuilder, BuildPriceError> {
         self.price = match self.price {
             Some(old) if old >= price => Some(old - price),
-            Some(old) if old < price => return Err(BuildPriceError::NegativePriceBuilded(price - old, self)),
-            None => return Err(BuildPriceError::NegativePriceBuilded(price, self)),
+            Some(old) if old < price => return Err(BuildPriceError::NegativePriceBuilded(price - old)),
+            None => return Err(BuildPriceError::NegativePriceBuilded(price)),
             _ => panic!("This should not be possible to reach"),
         };
         Ok(self)
@@ -154,8 +154,10 @@ impl MealBuilder {
     }
 
     /// Add multiple specials and their prices to new Meal
-    pub fn specials_with_prices<'a>(&'a mut self, descriptions_prices: &[(String, Money)]) -> &'a mut MealBuilder {
-        for (description, price) in descriptions_prices.iter() {
+    pub fn specials_with_prices<'a>(&'a mut self, descriptions: &[String], prices: &[Money]) -> &'a mut MealBuilder {
+        //TODO: Check length of descriptions and prices
+        //extend BuildPriceError in case of inconsistent length
+        for (description, price) in descriptions.iter().zip(prices.iter()) {
             self.special(description.to_string()).add_price(*price);
         }
         self
@@ -237,6 +239,8 @@ impl Meal {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rstest::*;
+    use crate::order_model::meal::BuildPriceError::*;
 
     #[test]
     fn meal_can_be_created() {
@@ -485,6 +489,278 @@ mod tests {
                 price: Money::new(0, 0),
                 specials: HashMap::new(),
                 special_factory: SpecialFactory::new(),
+            }
+        )
+    }
+
+    #[test]
+    fn meal_builder_create_meal_without_spacials() {
+        // Given:
+        let mut meal_factory = MealFactory::new();
+        let mut meal_builder = MealBuilder::new();
+        
+        // When:
+        meal_builder.
+            meal_id(String::from("05")).
+            variety(String::from("Big")).
+            price(Money::new(4, 50));
+        let meal = meal_builder.meal(&mut meal_factory);
+
+        // Then:
+        assert_eq!(
+            meal,
+            Meal {
+                id: 0,
+                meal_id: String::from("05"),
+                variety: String::from("Big"),
+                price: Money::new(4, 50),
+                specials: HashMap::new(),
+                special_factory: SpecialFactory::new(),
+            }
+        )
+    }
+
+    #[rstest]
+    #[case(vec![String::from("Pan-Pizza"), String::from("Zwiebeln"), String::from("Knoblauch")])]
+    fn single_specials_can_be_added_to_meal_builder(
+        #[case] specials: Vec<String>,
+    ) {
+        // Given:
+        let mut meal_factory = MealFactory::new();
+        let mut meal_builder = MealBuilder::new();
+        let mut expected_special_factory = SpecialFactory::new();
+        let mut expected_specials = HashMap::new();
+        
+        // When:
+        meal_builder.
+            meal_id(String::from("05")).
+            variety(String::from("Big")).
+            price(Money::new(4, 50));
+        for new_special in specials.into_iter() {
+            meal_builder.special(new_special.clone());
+            let special = expected_special_factory.create_special(new_special);
+            let id = special.get_id();
+            expected_specials.insert(id, special);
+        
+        }
+        let meal = meal_builder.meal(&mut meal_factory);
+
+        // Then:
+        assert_eq!(
+            meal,
+            Meal {
+                id: 0,
+                meal_id: String::from("05"),
+                variety: String::from("Big"),
+                price: Money::new(4, 50),
+                specials: expected_specials,
+                special_factory: expected_special_factory,
+            }
+        )
+    }
+    
+    #[rstest]
+    #[case(vec![String::from("Pan-Pizza"), String::from("Zwiebeln"), String::from("Knoblauch")])]
+    fn bundle_of_specials_can_be_added_to_meal_builder(
+        #[case] specials: Vec<String>,
+    ) {
+        // Given:
+        let mut meal_factory = MealFactory::new();
+        let mut meal_builder = MealBuilder::new();
+        let mut expected_special_factory = SpecialFactory::new();
+        let mut expected_specials = HashMap::new();
+        
+        // When:
+        meal_builder.
+            meal_id(String::from("05")).
+            variety(String::from("Big")).
+            price(Money::new(4, 50)).
+            specials(&specials);
+        let meal = meal_builder.meal(&mut meal_factory);
+        for new_special in specials.into_iter() {
+            let special = expected_special_factory.create_special(new_special);
+            let id = special.get_id();
+            expected_specials.insert(id, special);
+        
+        }
+
+        // Then:
+        assert_eq!(
+            meal,
+            Meal {
+                id: 0,
+                meal_id: String::from("05"),
+                variety: String::from("Big"),
+                price: Money::new(4, 50),
+                specials: expected_specials,
+                special_factory: expected_special_factory,
+            }
+        )
+    }
+
+    
+    #[rstest]
+    #[case(vec![Money::new(2, 42), Money::new(5, 01), Money::new(4, 83)], Money::new(12, 26))]
+    #[case(vec![Money::new(7, 50), Money::new(1, 42)], Money::new(8, 92))]
+    #[case(vec![Money::new(3, 33)], Money::new(3, 33))]
+    fn prices_are_summed_up_correctly_in_mealbuilder(
+        #[case] prices: Vec<Money>,
+        #[case] expected_sum: Money,
+    ) {
+        // Given:
+        let mut meal_factory = MealFactory::new();
+        let mut meal_builder = MealBuilder::new();
+
+        // When:
+        for price in prices.into_iter() {
+            meal_builder.add_price(price);
+        }
+        let summed_price = meal_builder.meal(&mut meal_factory).get_price();
+
+        // Then:
+        assert_eq!(expected_sum, summed_price)
+    }
+
+    
+    #[rstest]
+    #[case(Money::new(25, 00), vec![Money::new(2, 42), Money::new(5, 01), Money::new(4, 83)], Money::new(12, 74))]
+    #[case(Money::new(25, 00), vec![Money::new(7, 50), Money::new(1, 42)], Money::new(16, 08))]
+    #[case(Money::new(25, 00), vec![Money::new(3, 33)], Money::new(21, 67))]
+    fn prices_are_subtracted_up_correctly_in_mealbuilder(
+        #[case] start_value: Money,
+        #[case] prices: Vec<Money>,
+        #[case] expected_diff: Money,
+    ) {
+        // Given:
+        let mut meal_factory = MealFactory::new();
+        let mut meal_builder = MealBuilder::new();
+        meal_builder.price(start_value);
+
+        // When:
+        for price in prices.into_iter() {
+            meal_builder.diff_price(price).unwrap();
+        }
+        let subtracted_price = meal_builder.meal(&mut meal_factory).get_price();
+
+        // Then:
+        assert_eq!(expected_diff, subtracted_price)
+    }
+
+    
+    #[rstest]
+    #[case(Money::new(10, 00), vec![Money::new(2, 42), Money::new(5, 01), Money::new(4, 83)], NegativePriceBuilded(Money::new(2, 26)))]
+    #[case(Money::new(5, 00), vec![Money::new(2, 42), Money::new(5, 01), Money::new(4, 83)], NegativePriceBuilded(Money::new(2, 43)))]
+    #[case(Money::new(7, 50), vec![Money::new(7, 50), Money::new(1, 42)], NegativePriceBuilded(Money::new(1, 42)))]
+    #[case(Money::new(1, 00), vec![Money::new(3, 33)], NegativePriceBuilded(Money::new(2, 33)))]
+    fn negative_price_substraction_returns_error_in_mealbuilder(
+        #[case] start_value: Money,
+        #[case] prices: Vec<Money>,
+        #[case] expected_negativ: BuildPriceError,
+    ) {
+        // Given:
+        let mut meal_builder = MealBuilder::new();
+        meal_builder.price(start_value);
+        let mut negative_amount = NegativePriceBuilded(Money::new(0, 0));
+
+        // When:
+        for price in prices.into_iter() {
+            match meal_builder.diff_price(price) {
+                Ok(_) => continue,
+                Err(negative_error) => {
+                    negative_amount = negative_error;
+                    break;
+                }
+            }
+        }
+
+        // Then:
+        assert_eq!(expected_negativ, negative_amount)
+    }
+
+    #[rstest]
+    #[case(
+        vec![String::from("Pan-Pizza"), String::from("Zwiebeln"), String::from("Knoblauch")],
+        vec![Money::new(2, 42), Money::new(5, 01), Money::new(4, 83)],
+        Money::new(12, 26)
+    )]
+    fn single_specials_with_price_can_be_added_to_meal_builder(
+        #[case] specials: Vec<String>,
+        #[case] prices: Vec<Money>,
+        #[case] expected_sum: Money,
+    ) {
+        // Given:
+        let mut meal_factory = MealFactory::new();
+        let mut meal_builder = MealBuilder::new();
+        let mut expected_special_factory = SpecialFactory::new();
+        let mut expected_specials = HashMap::new();
+        
+        // When:
+        meal_builder.
+            meal_id(String::from("05")).
+            variety(String::from("Big"));
+        for (new_special, new_price) in specials.into_iter().zip(prices.into_iter()) {
+            meal_builder.special_with_price(new_special.clone(), new_price);
+            let special = expected_special_factory.create_special(new_special);
+            let id = special.get_id();
+            expected_specials.insert(id, special);
+        
+        }
+        let meal = meal_builder.meal(&mut meal_factory);
+
+        // Then:
+        assert_eq!(
+            meal,
+            Meal {
+                id: 0,
+                meal_id: String::from("05"),
+                variety: String::from("Big"),
+                price: expected_sum,
+                specials: expected_specials,
+                special_factory: expected_special_factory,
+            }
+        )
+    }
+    
+    #[rstest]
+    #[case(
+        vec![String::from("Pan-Pizza"), String::from("Zwiebeln"), String::from("Knoblauch")],
+        vec![Money::new(2, 42), Money::new(5, 01), Money::new(4, 83)],
+        Money::new(12, 26)
+    )]
+    fn bundle_of_specials_with_prices_can_be_added_to_meal_builder(
+        #[case] specials: Vec<String>,
+        #[case] prices: Vec<Money>,
+        #[case] expected_sum: Money,
+    ) {
+        // Given:
+        let mut meal_factory = MealFactory::new();
+        let mut meal_builder = MealBuilder::new();
+        let mut expected_special_factory = SpecialFactory::new();
+        let mut expected_specials = HashMap::new();
+        
+        // When:
+        meal_builder.
+            meal_id(String::from("05")).
+            variety(String::from("Big")).
+            specials_with_prices(&specials, &prices);
+        let meal = meal_builder.meal(&mut meal_factory);
+        for new_special in specials.into_iter() {
+            let special = expected_special_factory.create_special(new_special);
+            let id = special.get_id();
+            expected_specials.insert(id, special);
+        
+        }
+
+        // Then:
+        assert_eq!(
+            meal,
+            Meal {
+                id: 0,
+                meal_id: String::from("05"),
+                variety: String::from("Big"),
+                price: expected_sum,
+                specials: expected_specials,
+                special_factory: expected_special_factory,
             }
         )
     }
