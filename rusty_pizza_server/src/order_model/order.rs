@@ -171,15 +171,15 @@ impl Order {
     }
 
     pub fn user_has_to_pay(self, user: u32) -> Option<Money> {
-        match self.meals.get(user) {
+        match self.meals.get(&user) {
             None => None,
-            Some(user_meals) => user_meals.calculate_total_price(),
+            Some(user_meals) => Some(user_meals.calculate_total_price()),
         }
     }
 
-    pub fn get_pay_overview(self) -> HashMap<u32, Money> {
+    pub fn generate_pay_overview(self) -> HashMap<u32, Money> {
         //TODO: replace userid with username from usermanagement after it is implemented (#29)
-        self.meals.map(|id, user_meals| (id, user_meals.calculate_total_price())).collect()
+        self.meals.iter().map(|(id, user_meals)| (*id, user_meals.calculate_total_price())).collect()
     }
 }
 
@@ -664,5 +664,56 @@ mod tests {
         let calculated_change = order.calculate_total_change();
         //Then
         assert_eq!(Err(expected_change), calculated_change);
+    }
+
+    #[rstest]
+    #[case(Money::new(5, 50), Money::new(7, 42), 0, Some(Money::new(5, 50)))]
+    #[case(Money::new(2, 34), Money::new(6, 78), 1, Some(Money::new(6, 78)))]
+    #[case(Money::new(3, 21), Money::new(9, 99), 2, None)]
+    fn correct_total_price_for_user_is_returned(
+        #[case] manager_price: Money,
+        #[case] user_price: Money,
+        #[case] asked_id: u32,
+        #[case] expected_total: Option<Money>,
+    ) {
+        // Given:
+        let manager_id = 0;
+        let mut order = Order::new(manager_id);
+
+        let user_id = 1;
+        order.add_user(user_id);
+
+        //When
+        order.add_meal_for_user(0, String::from("0"), String::from("Gross"), manager_price).unwrap();
+        order.add_meal_for_user(1, String::from("1"), String::from("Tortellini"), user_price).unwrap();
+
+        //Then
+        assert_eq!(expected_total, order.user_has_to_pay(asked_id));
+    }
+
+    #[rstest]
+    #[case(Money::new(5, 50), Money::new(7, 42))]
+    #[case(Money::new(2, 34), Money::new(6, 78))]
+    fn pay_overview_is_generated_correctly(
+        #[case] manager_price: Money,
+        #[case] user_price: Money,
+    ) {
+        // Given:
+        let manager_id = 0;
+        let mut order = Order::new(manager_id);
+
+        let user_id = 1;
+        order.add_user(user_id);
+
+        let mut expected_pay_overview = HashMap::new();
+
+        //When
+        expected_pay_overview.insert(0, manager_price.clone());
+        order.add_meal_for_user(0, String::from("0"), String::from("Gross"), manager_price).unwrap();
+        expected_pay_overview.insert(1, user_price.clone());
+        order.add_meal_for_user(1, String::from("1"), String::from("Tortellini"), user_price).unwrap();
+
+        //Then
+        assert_eq!(expected_pay_overview, order.generate_pay_overview());
     }
 }
