@@ -179,7 +179,10 @@ impl Order {
 
     pub fn generate_pay_overview(self) -> HashMap<u32, Money> {
         //TODO: replace userid with username from usermanagement after it is implemented (#29)
-        self.meals.iter().map(|(id, user_meals)| (*id, user_meals.calculate_total_price())).collect()
+        self.meals
+            .iter()
+            .map(|(id, user_meals)| (*id, user_meals.calculate_total_price()))
+            .collect()
     }
 }
 
@@ -684,8 +687,12 @@ mod tests {
         order.add_user(user_id);
 
         //When
-        order.add_meal_for_user(0, String::from("0"), String::from("Gross"), manager_price).unwrap();
-        order.add_meal_for_user(1, String::from("1"), String::from("Tortellini"), user_price).unwrap();
+        order
+            .add_meal_for_user(0, String::from("0"), String::from("Gross"), manager_price)
+            .unwrap();
+        order
+            .add_meal_for_user(1, String::from("1"), String::from("Tortellini"), user_price)
+            .unwrap();
 
         //Then
         assert_eq!(expected_total, order.user_has_to_pay(asked_id));
@@ -709,9 +716,13 @@ mod tests {
 
         //When
         expected_pay_overview.insert(0, manager_price.clone());
-        order.add_meal_for_user(0, String::from("0"), String::from("Gross"), manager_price).unwrap();
+        order
+            .add_meal_for_user(0, String::from("0"), String::from("Gross"), manager_price)
+            .unwrap();
         expected_pay_overview.insert(1, user_price.clone());
-        order.add_meal_for_user(1, String::from("1"), String::from("Tortellini"), user_price).unwrap();
+        order
+            .add_meal_for_user(1, String::from("1"), String::from("Tortellini"), user_price)
+            .unwrap();
 
         //Then
         assert_eq!(expected_pay_overview, order.generate_pay_overview());
