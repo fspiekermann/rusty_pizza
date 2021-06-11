@@ -245,17 +245,11 @@ mod tests {
             order.add_meal_for_user(user_id, meal_id.clone(), variety.clone(), price.clone());
 
         // Then:
-        assert_eq!(
-            meal,
-            Ok(&mut Meal::new(
-                0,
-                meal_id.clone(),
-                variety.clone(),
-                price.clone()
-            ))
-        );
+        let mut expected_meal =
+            MealFactory::new().create_meal(meal_id.clone(), variety.clone(), price.clone());
+        assert_eq!(meal, Ok(&mut expected_meal));
         let mut expected_meals = Meals::new(user_id);
-        expected_meals.add_meal(Meal::new(0, meal_id, variety, price));
+        expected_meals.add_meal(expected_meal);
         assert_eq!(order.get_meals_for_user(user_id), Some(&mut expected_meals));
     }
 

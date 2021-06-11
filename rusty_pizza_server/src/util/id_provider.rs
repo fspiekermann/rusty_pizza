@@ -8,6 +8,12 @@ impl IdProvider {
         IdProvider { next_id: 0 }
     }
 
+    pub fn start_by(starting_value: u32) -> IdProvider {
+        IdProvider {
+            next_id: starting_value,
+        }
+    }
+
     pub fn generate_next(&mut self) -> u32 {
         let next = self.next_id;
         self.next_id = next + 1;
@@ -42,5 +48,17 @@ mod tests {
 
         // Then:
         assert_eq!(id, 1);
+    }
+
+    #[test]
+    fn starts_by_given_id() {
+        // Given:
+        let mut id_provider = IdProvider::start_by(42);
+
+        // When:
+        let id = id_provider.generate_next();
+
+        // Then:
+        assert_eq!(id, 42);
     }
 }
