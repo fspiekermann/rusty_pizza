@@ -169,6 +169,18 @@ impl Order {
             })
         }
     }
+
+    pub fn user_has_to_pay(self, user: u32) -> Option<Money> {
+        match self.meals.get(user) {
+            None => None,
+            Some(user_meals) => user_meals.calculate_total_price(),
+        }
+    }
+
+    pub fn get_pay_overview(self) -> HashMap<u32, Money> {
+        //TODO: replace userid with username from usermanagement after it is implemented (#29)
+        self.meals.map(|id, user_meals| (id, user_meals.calculate_total_price())).collect()
+    }
 }
 
 #[cfg(test)]
