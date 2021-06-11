@@ -9,7 +9,9 @@ impl IdProvider {
     }
 
     pub fn start_by(starting_value: u32) -> IdProvider {
-        IdProvider { next_id: starting_value }
+        IdProvider {
+            next_id: starting_value,
+        }
     }
 
     pub fn generate_next(&mut self) -> u32 {

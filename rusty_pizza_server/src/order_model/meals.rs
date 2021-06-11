@@ -149,27 +149,23 @@ mod tests {
         let variety = String::from("groß");
         let price = Money::new(5, 50);
 
-        let meal = meals.meal_factory.create_meal(
-            meal_id.clone(),
-            variety.clone(),
-            price.clone(),
-        );
+        let meal = meals
+            .meal_factory
+            .create_meal(meal_id.clone(), variety.clone(), price.clone());
 
         // When:
         let added = meals.add_meal(meal);
         let mut expected_meals = HashMap::new();
-        expected_meals.insert(0, MealFactory::new().create_meal(
-            meal_id.clone(),
-            variety.clone(),
-            price.clone(),
-        ));
+        expected_meals.insert(
+            0,
+            MealFactory::new().create_meal(meal_id.clone(), variety.clone(), price.clone()),
+        );
 
         // Then:
-        assert_eq!(added, &MealFactory::new().create_meal(
-            meal_id.clone(),
-            variety.clone(),
-            price.clone(),
-        ));
+        assert_eq!(
+            added,
+            &MealFactory::new().create_meal(meal_id.clone(), variety.clone(), price.clone(),)
+        );
         assert_eq!(
             meals,
             Meals {
@@ -193,8 +189,11 @@ mod tests {
         let mut meals = Meals::new(user_id);
 
         for price in prices.into_iter() {
-            let meal =
-                meals.meal_factory.create_meal(String::from("XX"), String::from("something"), price);
+            let meal = meals.meal_factory.create_meal(
+                String::from("XX"),
+                String::from("something"),
+                price,
+            );
             meals.add_meal(meal);
         }
         //When
@@ -220,8 +219,11 @@ mod tests {
         meals.set_tip(tip);
 
         for price in prices.into_iter() {
-            let meal =
-                meals.meal_factory.create_meal(String::from("XX"), String::from("something"), price);
+            let meal = meals.meal_factory.create_meal(
+                String::from("XX"),
+                String::from("something"),
+                price,
+            );
             meals.add_meal(meal);
         }
         //When
@@ -247,8 +249,11 @@ mod tests {
         meals.set_tip(tip);
 
         for price in prices.into_iter() {
-            let meal =
-                meals.meal_factory.create_meal(String::from("XX"), String::from("something"), price);
+            let meal = meals.meal_factory.create_meal(
+                String::from("XX"),
+                String::from("something"),
+                price,
+            );
             meals.add_meal(meal);
         }
         //When
@@ -261,11 +266,8 @@ mod tests {
     fn some_meals() -> HashMap<u32, Meal> {
         let mut meals = HashMap::new();
         let mut meal_factory = MealFactory::new();
-        let meal = meal_factory.create_meal(
-            String::from("03"),
-            String::from("groß"),
-            Money::new(5, 50),
-        );
+        let meal =
+            meal_factory.create_meal(String::from("03"), String::from("groß"), Money::new(5, 50));
         let mut id = meal.get_id();
         meals.insert(id, meal);
         let meal = meal_factory.create_meal(
@@ -285,7 +287,7 @@ mod tests {
     fn meal_can_be_removed_from_meals_by_id(
         #[case] to_remove_id: u32,
         #[case] remaining_length: usize,
-        some_meals: HashMap<u32, Meal>
+        some_meals: HashMap<u32, Meal>,
     ) {
         // Given:
         let user_id = 0;
@@ -293,12 +295,12 @@ mod tests {
 
         let mut expected_removed: Option<Meal> = None;
 
-        for (id, some_meal) in some_meals.into_iter(){
+        for (id, some_meal) in some_meals.into_iter() {
             if id == to_remove_id {
                 expected_removed = Some(MealFactory::start_by(id).create_meal(
                     some_meal.get_meal_id(),
                     some_meal.get_variety(),
-                    some_meal.get_price()
+                    some_meal.get_price(),
                 ));
             }
             meals.add_meal(some_meal);
