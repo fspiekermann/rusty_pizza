@@ -1,4 +1,5 @@
 use crate::order_model::meal::Meal;
+use crate::util::id::Id;
 use crate::util::money::Money;
 use std::collections::HashMap;
 use std::error::Error;
@@ -37,9 +38,9 @@ impl Error for ChangeMoneyError {}
 #[derive(Debug, PartialEq)]
 pub struct Meals {
     /// Meal by unique ID
-    meals: HashMap<u32, Meal>,
+    meals: HashMap<Id, Meal>,
     /// User ID of this `Meals` owner
-    owner_id: u32,
+    owner_id: Id,
     /// Whether the meals selection has been completed
     ready: bool,
     paid: Money,
@@ -47,7 +48,7 @@ pub struct Meals {
 }
 
 impl Meals {
-    pub fn new(user_id: u32) -> Meals {
+    pub fn new(user_id: Id) -> Meals {
         Meals {
             meals: HashMap::new(),
             owner_id: user_id,
@@ -59,12 +60,12 @@ impl Meals {
 
     pub fn add_meal(&mut self, meal: Meal) -> &mut Meal {
         let id = meal.get_id();
-        self.meals.insert(id, meal);
+        self.meals.insert(id.clone(), meal);
         self.meals.get_mut(&id).unwrap()
     }
 
-    pub fn get_owner_id(&self) -> u32 {
-        self.owner_id
+    pub fn get_owner_id(&self) -> Id {
+        self.owner_id.clone()
     }
 
     pub fn set_paid(&mut self, paid: Money) {
@@ -120,7 +121,7 @@ impl Meals {
     /// # Return
     ///
     /// * The removed `Meal` object if succeeded or None
-    pub fn remove_meal_by_id(&mut self, id: u32) -> Option<Meal> {
+    pub fn remove_meal_by_id(&mut self, id: Id) -> Option<Meal> {
         self.meals.remove(&id)
     }
 }
@@ -134,10 +135,10 @@ mod tests {
     #[test]
     fn meals_can_be_created() {
         // Given:
-        let user_id = 0;
+        let user_id = Id::new(0);
 
         // When:
-        let meals = Meals::new(user_id);
+        let meals = Meals::new(user_id.clone());
 
         // Then:
         assert_eq!(
@@ -155,11 +156,11 @@ mod tests {
     #[test]
     fn meal_can_be_added_to_meals() {
         // Given:
-        let user_id = 0;
-        let mut meals = Meals::new(user_id);
+        let user_id = Id::new(0);
+        let mut meals = Meals::new(user_id.clone());
 
         let meal = Meal::new(
-            0,
+            Id::new(0),
             String::from("03"),
             String::from("groß"),
             Money::new(5, 50),
@@ -172,7 +173,7 @@ mod tests {
         assert_eq!(
             added,
             &Meal::new(
-                0,
+                Id::new(0),
                 String::from("03"),
                 String::from("groß"),
                 Money::new(5, 50),
@@ -181,9 +182,9 @@ mod tests {
 
         let mut expected_meals = HashMap::new();
         expected_meals.insert(
-            0,
+            Id::new(0),
             Meal::new(
-                0,
+                Id::new(0),
                 String::from("03"),
                 String::from("groß"),
                 Money::new(5, 50),
@@ -207,7 +208,7 @@ mod tests {
     )]
     fn total_price_is_calculated_correctly(prices: Vec<Money>, expected_total: Money) {
         //Given
-        let user_id = 0;
+        let user_id = Id::new(0);
         let mut meals = Meals::new(user_id);
         let mut meal_factory = MealFactory::new();
 
@@ -233,7 +234,7 @@ mod tests {
         expected_change: Money,
     ) {
         //Given
-        let user_id = 0;
+        let user_id = Id::new(0);
         let mut meals = Meals::new(user_id);
         meals.set_paid(paid);
         meals.set_tip(tip);
@@ -261,7 +262,7 @@ mod tests {
         expected_change: ChangeMoneyError,
     ) {
         //Given
-        let user_id = 0;
+        let user_id = Id::new(0);
         let mut meals = Meals::new(user_id);
         meals.set_paid(paid);
         meals.set_tip(tip);
@@ -283,18 +284,28 @@ mod tests {
         expected_result,
         remaining_length,
         case(
-            Meal::new(0, String::from("03"), String::from("groß"), Money::new(5, 50)),
-            true,
-            1
-        ),
-        case(
-            Meal::new(1, String::from("35"), String::from("Spaghetti"), Money::new(4, 35)),
+            Meal::new(
+                Id::new(0),
+                String::from("03"),
+                String::from("groß"),
+                Money::new(5, 50)
+            ),
             true,
             1
         ),
         case(
             Meal::new(
-                2,
+                Id::new(1),
+                String::from("35"),
+                String::from("Spaghetti"),
+                Money::new(4, 35)
+            ),
+            true,
+            1
+        ),
+        case(
+            Meal::new(
+                Id::new(2),
                 String::from("42"),
                 String::from("Kräuterbutter"),
                 Money::new(2, 25)
@@ -309,17 +320,17 @@ mod tests {
         remaining_length: usize,
     ) {
         // Given:
-        let user_id = 0;
+        let user_id = Id::new(0);
         let mut meals = Meals::new(user_id);
 
         let meal_1 = Meal::new(
-            0,
+            Id::new(0),
             String::from("03"),
             String::from("groß"),
             Money::new(5, 50),
         );
         let meal_2 = Meal::new(
-            1,
+            Id::new(1),
             String::from("35"),
             String::from("Spaghetti"),
             Money::new(4, 35),
@@ -339,34 +350,44 @@ mod tests {
         expected_removed,
         remaining_length,
         case(
-            0,
-            Some(Meal::new(0, String::from("03"), String::from("groß"), Money::new(5, 50))),
+            Id::new(0),
+            Some(Meal::new(
+                Id::new(0),
+                String::from("03"),
+                String::from("groß"),
+                Money::new(5, 50)
+            )),
             1
         ),
         case(
-            1,
-            Some(Meal::new(1, String::from("35"), String::from("Spaghetti"), Money::new(4, 35))),
+            Id::new(1),
+            Some(Meal::new(
+                Id::new(1),
+                String::from("35"),
+                String::from("Spaghetti"),
+                Money::new(4, 35)
+            )),
             1
         ),
-        case(2, None, 2)
+        case(Id::new(2), None, 2)
     )]
     fn meal_can_be_removed_from_meals_by_id(
-        id: u32,
+        id: Id,
         expected_removed: Option<Meal>,
         remaining_length: usize,
     ) {
         // Given:
-        let user_id = 0;
+        let user_id = Id::new(0);
         let mut meals = Meals::new(user_id);
 
         let meal_1 = Meal::new(
-            0,
+            Id::new(0),
             String::from("03"),
             String::from("groß"),
             Money::new(5, 50),
         );
         let meal_2 = Meal::new(
-            1,
+            Id::new(1),
             String::from("35"),
             String::from("Spaghetti"),
             Money::new(4, 35),

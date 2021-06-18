@@ -1,5 +1,6 @@
 use crate::order_model::meal::{Meal, MealFactory};
 use crate::order_model::meals::Meals;
+use crate::util::id::Id;
 use crate::util::money::Money;
 use std::collections::{HashMap, HashSet};
 use std::error;
@@ -12,13 +13,13 @@ pub enum NotAllPaidEnoughError {
     Underpaid {
         underpaid: Money,
         /// IDs of the users that didn't pay enough
-        paid_less: HashSet<u32>,
+        paid_less: HashSet<Id>,
     },
     /// There is enough money to pay the bill, but somebody did not pay enough
     EnoughInTotal {
         change: Money,
         /// IDs of the users that didn't pay enough
-        paid_less: HashSet<u32>,
+        paid_less: HashSet<Id>,
     },
 }
 
@@ -81,34 +82,34 @@ impl error::Error for OrderError {
 #[derive(Debug, PartialEq)]
 pub struct Order {
     /// Maps IDs of users to their `Meals`
-    meals: HashMap<u32, Meals>,
+    meals: HashMap<Id, Meals>,
     status: OrderStatus,
     /// User ID of the manager
-    manager_id: u32,
+    manager_id: Id,
     meal_factory: MealFactory,
 }
 
 impl Order {
-    pub fn new(manager_id: u32) -> Order {
+    pub fn new(manager_id: Id) -> Order {
         let mut order = Order {
             meals: HashMap::new(),
             status: OrderStatus::Open,
-            manager_id,
+            manager_id: manager_id.clone(),
             meal_factory: MealFactory::new(),
         };
         order.add_user(manager_id);
         order
     }
 
-    pub fn add_user(&mut self, user_id: u32) -> &mut Meals {
-        let meals = Meals::new(user_id);
-        self.meals.insert(user_id, meals);
+    pub fn add_user(&mut self, user_id: Id) -> &mut Meals {
+        let meals = Meals::new(user_id.clone());
+        self.meals.insert(user_id.clone(), meals);
         self.meals.get_mut(&user_id).unwrap()
     }
 
     pub fn add_meal_for_user(
         &mut self,
-        user_id: u32,
+        user_id: Id,
         meal_id: String,
         variety: String,
         price: Money,
@@ -122,7 +123,7 @@ impl Order {
         }
     }
 
-    pub fn get_meals_for_user(&mut self, user_id: u32) -> Option<&mut Meals> {
+    pub fn get_meals_for_user(&mut self, user_id: Id) -> Option<&mut Meals> {
         self.meals.get_mut(&user_id)
     }
 
@@ -145,7 +146,7 @@ impl Order {
     pub fn calculate_total_change(&self) -> Result<Money, NotAllPaidEnoughError> {
         let mut total_change = Money::zero();
         let mut underpaid = Money::zero();
-        let mut paid_less: HashSet<u32> = HashSet::new();
+        let mut paid_less: HashSet<Id> = HashSet::new();
         for single_order in self.meals.values() {
             match single_order.calculate_change() {
                 Ok(change) => total_change += change,
@@ -179,14 +180,14 @@ mod tests {
     #[test]
     fn order_can_be_created() {
         //Given
-        let user_id = 0;
+        let user_id = Id::new(0);
 
         //When
-        let order = Order::new(user_id);
+        let order = Order::new(user_id.clone());
 
         //Then
         assert_eq!(order.meals.len(), 1);
-        assert_eq!(order.meals[&user_id], Meals::new(user_id));
+        assert_eq!(order.meals[&user_id], Meals::new(user_id.clone()));
         assert_eq!(order.status, OrderStatus::Open);
         assert_eq!(order.manager_id, user_id);
     }
@@ -194,16 +195,16 @@ mod tests {
     #[test]
     fn user_can_be_added_to_order() {
         //Given
-        let manager_id = 0;
-        let mut order = Order::new(manager_id);
+        let manager_id = Id::new(0);
+        let mut order = Order::new(manager_id.clone());
 
-        let user_id = 1;
+        let user_id = Id::new(1);
 
         //When
-        let meal = order.add_user(user_id);
+        let meal = order.add_user(user_id.clone());
 
         //Then
-        assert_eq!(meal, &mut Meals::new(user_id));
+        assert_eq!(meal, &mut Meals::new(user_id.clone()));
         assert_eq!(order.meals.len(), 2);
         assert_eq!(order.meals[&user_id], Meals::new(user_id));
         assert_eq!(order.status, OrderStatus::Open);
@@ -234,42 +235,46 @@ mod tests {
     )]
     fn meal_can_be_added_to_order_for_user(meal_id: String, variety: String, price: Money) {
         // Given:
-        let manager_id = 0;
+        let manager_id = Id::new(0);
         let mut order = Order::new(manager_id);
 
-        let user_id = 1;
-        order.add_user(user_id);
+        let user_id = Id::new(1);
+        order.add_user(user_id.clone());
 
         // When:
-        let meal =
-            order.add_meal_for_user(user_id, meal_id.clone(), variety.clone(), price.clone());
+        let meal = order.add_meal_for_user(
+            user_id.clone(),
+            meal_id.clone(),
+            variety.clone(),
+            price.clone(),
+        );
 
         // Then:
         assert_eq!(
             meal,
             Ok(&mut Meal::new(
-                0,
+                Id::new(0),
                 meal_id.clone(),
                 variety.clone(),
                 price.clone()
             ))
         );
-        let mut expected_meals = Meals::new(user_id);
-        expected_meals.add_meal(Meal::new(0, meal_id, variety, price));
+        let mut expected_meals = Meals::new(user_id.clone());
+        expected_meals.add_meal(Meal::new(Id::new(0), meal_id, variety, price));
         assert_eq!(order.get_meals_for_user(user_id), Some(&mut expected_meals));
     }
 
     #[test]
     fn meal_cannot_be_added_to_order_for_user_if_user_is_not_participating_in_order() {
         // Given:
-        let manager_id = 0;
+        let manager_id = Id::new(0);
         let mut order = Order::new(manager_id);
 
-        let user_id = 1;
+        let user_id = Id::new(1);
 
         // When:
         let meal = order.add_meal_for_user(
-            user_id,
+            user_id.clone(),
             String::from("03"),
             String::from("groß"),
             Money::new(5, 50),
@@ -283,10 +288,10 @@ mod tests {
     #[test]
     fn user_not_participating_in_order_has_no_meals() {
         // Given:
-        let manager_id = 0;
+        let manager_id = Id::new(0);
         let mut order = Order::new(manager_id);
 
-        let user_id = 1;
+        let user_id = Id::new(1);
 
         // When:
         let meals = order.get_meals_for_user(user_id);
@@ -298,14 +303,14 @@ mod tests {
     #[test]
     fn user_participating_in_order_has_meals() {
         // Given:
-        let manager_id = 0;
+        let manager_id = Id::new(0);
         let mut order = Order::new(manager_id);
 
-        let user_id = 1;
-        order.add_user(user_id);
+        let user_id = Id::new(1);
+        order.add_user(user_id.clone());
 
         // When:
-        let meals = order.get_meals_for_user(user_id);
+        let meals = order.get_meals_for_user(user_id.clone());
 
         // Then:
         assert_eq!(meals, Some(&mut Meals::new(user_id)));
@@ -313,7 +318,7 @@ mod tests {
 
     struct MealsAttributes {
         meal_price: Vec<Money>,
-        orderer_id: u32,
+        orderer_id: Id,
         amount: Money,
     }
 
@@ -322,17 +327,17 @@ mod tests {
             vec![
                 MealsAttributes {
                     meal_price: vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
-                    orderer_id: 1,
+                    orderer_id: Id::new(1),
                     amount: Money::zero(),
                 },
                 MealsAttributes {
                     meal_price: vec![Money::new(3, 50), Money::new(4, 42)],
-                    orderer_id: 2,
+                    orderer_id: Id::new(2),
                     amount: Money::zero(),
                 },
                 MealsAttributes {
                     meal_price: vec![Money::new(6, 83)],
-                    orderer_id: 3,
+                    orderer_id: Id::new(3),
                     amount: Money::zero(),
                 },
             ],
@@ -341,12 +346,12 @@ mod tests {
             vec![
                 MealsAttributes {
                     meal_price: vec![Money::new(2, 25), Money::new(4, 42)],
-                    orderer_id: 1,
+                    orderer_id: Id::new(1),
                     amount: Money::zero(),
                 },
                 MealsAttributes {
                     meal_price: vec![Money::new(5, 50)],
-                    orderer_id: 2,
+                    orderer_id: Id::new(2),
                     amount: Money::zero(),
                 },
             ],
@@ -357,15 +362,15 @@ mod tests {
         expected_total: Money,
     ) {
         //Given
-        let manager_id = 0;
+        let manager_id = Id::new(0);
         let mut order = Order::new(manager_id);
 
         for attributes in meals_attributes.into_iter() {
-            order.add_user(attributes.orderer_id);
+            order.add_user(attributes.orderer_id.clone());
             for price in attributes.meal_price.iter() {
                 order
                     .add_meal_for_user(
-                        attributes.orderer_id,
+                        attributes.orderer_id.clone(),
                         String::from("XX"),
                         String::from("something"),
                         price.clone(),
@@ -384,17 +389,17 @@ mod tests {
             vec![
                 MealsAttributes {
                     meal_price: vec![],
-                    orderer_id: 1,
+                    orderer_id: Id::new(1),
                     amount: Money::new(2, 25),
                 },
                 MealsAttributes {
                     meal_price: vec![],
-                    orderer_id: 2,
+                    orderer_id: Id::new(2),
                     amount: Money::new(5, 50),
                 },
                 MealsAttributes {
                     meal_price: vec![],
-                    orderer_id: 3,
+                    orderer_id: Id::new(3),
                     amount: Money::new(7, 37),
                 },
             ],
@@ -403,12 +408,12 @@ mod tests {
             vec![
                 MealsAttributes {
                     meal_price: vec![],
-                    orderer_id: 1,
+                    orderer_id: Id::new(1),
                     amount: Money::new(2, 25),
                 },
                 MealsAttributes {
                     meal_price: vec![],
-                    orderer_id: 2,
+                    orderer_id: Id::new(2),
                     amount: Money::new(4, 42),
                 },
             ],
@@ -416,13 +421,13 @@ mod tests {
     )]
     fn total_tip_is_calculated_correctly(meals_attributes: Vec<MealsAttributes>, total_tip: Money) {
         //Given
-        let manager_id = 0;
+        let manager_id = Id::new(0);
         let mut order = Order::new(manager_id);
 
         for attributes in meals_attributes.into_iter() {
-            order.add_user(attributes.orderer_id);
+            order.add_user(attributes.orderer_id.clone());
             order
-                .get_meals_for_user(attributes.orderer_id)
+                .get_meals_for_user(attributes.orderer_id.clone())
                 .unwrap()
                 .set_tip(attributes.amount)
         }
@@ -439,17 +444,17 @@ mod tests {
             vec![
                 MealsAttributes {
                     meal_price: vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
-                    orderer_id: 1,
+                    orderer_id: Id::new(1),
                     amount: Money::new(17, 00),
                 },
                 MealsAttributes {
                     meal_price: vec![Money::new(3, 50), Money::new(4, 42)],
-                    orderer_id: 2,
+                    orderer_id: Id::new(2),
                     amount: Money::new(8, 50),
                 },
                 MealsAttributes {
                     meal_price: vec![Money::new(6, 83)],
-                    orderer_id: 3,
+                    orderer_id: Id::new(3),
                     amount: Money::new(6, 83),
                 },
             ],
@@ -459,12 +464,12 @@ mod tests {
             vec![
                 MealsAttributes {
                     meal_price: vec![Money::new(2, 25), Money::new(4, 42)],
-                    orderer_id: 1,
+                    orderer_id: Id::new(1),
                     amount: Money::new(8, 25),
                 },
                 MealsAttributes {
                     meal_price: vec![Money::new(5, 50)],
-                    orderer_id: 2,
+                    orderer_id: Id::new(2),
                     amount: Money::new(5, 50),
                 },
             ],
@@ -476,15 +481,15 @@ mod tests {
         expected_change: Money,
     ) {
         //Given
-        let manager_id = 0;
+        let manager_id = Id::new(0);
         let mut order = Order::new(manager_id);
 
         for attributes in meals_attributes.into_iter() {
-            order.add_user(attributes.orderer_id);
+            order.add_user(attributes.orderer_id.clone());
             for price in attributes.meal_price.iter() {
                 order
                     .add_meal_for_user(
-                        attributes.orderer_id,
+                        attributes.orderer_id.clone(),
                         String::from("XX"),
                         String::from("something"),
                         price.clone(),
@@ -502,8 +507,8 @@ mod tests {
         assert_eq!(expected_change, calculated_change);
     }
 
-    fn build_paid_less_hash_set(user_ids: Vec<u32>) -> HashSet<u32> {
-        user_ids.into_iter().collect()
+    fn build_paid_less_hash_set(user_ids: Vec<u32>) -> HashSet<Id> {
+        user_ids.into_iter().map(|it| Id::new(it)).collect()
     }
 
     #[rstest(meals_attributes, expected_change,
@@ -511,17 +516,17 @@ mod tests {
             vec![
                 MealsAttributes {
                     meal_price: vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
-                    orderer_id: 1,
+                    orderer_id: Id::new(1),
                     amount: Money::new(17, 00),
                 },
                 MealsAttributes {
                     meal_price: vec![Money::new(3, 50), Money::new(4, 42)],
-                    orderer_id: 2,
+                    orderer_id: Id::new(2),
                     amount: Money::new(7, 50),
                 },
                 MealsAttributes {
                     meal_price: vec![Money::new(6, 83)],
-                    orderer_id: 3,
+                    orderer_id: Id::new(3),
                     amount: Money::new(6, 00),
                 },
             ],
@@ -534,12 +539,12 @@ mod tests {
             vec![
                 MealsAttributes {
                     meal_price: vec![Money::new(2, 25), Money::new(4, 42)],
-                    orderer_id: 1,
+                    orderer_id: Id::new(1),
                     amount: Money::new(8, 25),
                 },
                 MealsAttributes {
                     meal_price: vec![Money::new(5, 50)],
-                    orderer_id: 2,
+                    orderer_id: Id::new(2),
                     amount: Money::new(5, 00),
                 },
             ],
@@ -554,15 +559,15 @@ mod tests {
         expected_change: NotAllPaidEnoughError,
     ) {
         //Given
-        let manager_id = 0;
+        let manager_id = Id::new(0);
         let mut order = Order::new(manager_id);
 
         for attributes in meals_attributes.into_iter() {
-            order.add_user(attributes.orderer_id);
+            order.add_user(attributes.orderer_id.clone());
             for price in attributes.meal_price.iter() {
                 order
                     .add_meal_for_user(
-                        attributes.orderer_id,
+                        attributes.orderer_id.clone(),
                         String::from("XX"),
                         String::from("something"),
                         price.clone(),
@@ -585,17 +590,17 @@ mod tests {
             vec![
                 MealsAttributes {
                     meal_price: vec![Money::new(2, 25), Money::new(5, 50), Money::new(7, 37)],
-                    orderer_id: 1,
+                    orderer_id: Id::new(1),
                     amount: Money::new(16, 00),
                 },
                 MealsAttributes {
                     meal_price: vec![Money::new(3, 50), Money::new(4, 42)],
-                    orderer_id: 2,
+                    orderer_id: Id::new(2),
                     amount: Money::new(7, 50),
                 },
                 MealsAttributes {
                     meal_price: vec![Money::new(6, 83)],
-                    orderer_id: 3,
+                    orderer_id: Id::new(3),
                     amount: Money::new(6, 00),
                 },
             ],
@@ -608,12 +613,12 @@ mod tests {
             vec![
                 MealsAttributes {
                     meal_price: vec![Money::new(2, 25), Money::new(4, 42)],
-                    orderer_id: 1,
+                    orderer_id: Id::new(1),
                     amount: Money::new(6, 25),
                 },
                 MealsAttributes {
                     meal_price: vec![Money::new(5, 50)],
-                    orderer_id: 2,
+                    orderer_id: Id::new(2),
                     amount: Money::new(5, 00),
                 },
             ],
@@ -628,15 +633,15 @@ mod tests {
         expected_change: NotAllPaidEnoughError,
     ) {
         //Given
-        let manager_id = 0;
+        let manager_id = Id::new(0);
         let mut order = Order::new(manager_id);
 
         for attributes in meals_attributes.into_iter() {
-            order.add_user(attributes.orderer_id);
+            order.add_user(attributes.orderer_id.clone());
             for price in attributes.meal_price.iter() {
                 order
                     .add_meal_for_user(
-                        attributes.orderer_id,
+                        attributes.orderer_id.clone(),
                         String::from("XX"),
                         String::from("something"),
                         price.clone(),
