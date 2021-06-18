@@ -170,7 +170,17 @@ impl Order {
         }
     }
 
-    pub fn user_has_to_pay(self, user: u32) -> Option<Money> {
+
+    /// Returns the total bill of an `User` in this `Order`
+    ///
+    /// # Arguments
+    ///
+    /// * `user` - The `User` id
+    ///
+    /// # Return
+    ///
+    /// * `Option<Money>` the total bill or `None`
+    pub fn get_bill_of_user(self, user: u32) -> Option<Money> {
         match self.meals.get(&user) {
             None => None,
             Some(user_meals) => Some(user_meals.calculate_total_price()),
@@ -178,7 +188,6 @@ impl Order {
     }
 
     pub fn generate_pay_overview(self) -> HashMap<u32, Money> {
-        //TODO: replace userid with username from usermanagement after it is implemented (#29)
         self.meals
             .iter()
             .map(|(id, user_meals)| (*id, user_meals.calculate_total_price()))
@@ -673,11 +682,11 @@ mod tests {
     #[case(Money::new(5, 50), Money::new(7, 42), 0, Some(Money::new(5, 50)))]
     #[case(Money::new(2, 34), Money::new(6, 78), 1, Some(Money::new(6, 78)))]
     #[case(Money::new(3, 21), Money::new(9, 99), 2, None)]
-    fn correct_total_price_for_user_is_returned(
-        #[case] manager_price: Money,
-        #[case] user_price: Money,
+    fn correct_bill_for_user_is_returned(
+        #[case] manager_bill: Money,
+        #[case] user_bill: Money,
         #[case] asked_id: u32,
-        #[case] expected_total: Option<Money>,
+        #[case] expected_bill: Option<Money>,
     ) {
         // Given:
         let manager_id = 0;
@@ -686,16 +695,18 @@ mod tests {
         let user_id = 1;
         order.add_user(user_id);
 
+        order
+            .add_meal_for_user(0, String::from("0"), String::from("Gross"), manager_bill)
+            .unwrap();
+        order
+            .add_meal_for_user(1, String::from("1"), String::from("Tortellini"), user_bill)
+            .unwrap();
+        
         //When
-        order
-            .add_meal_for_user(0, String::from("0"), String::from("Gross"), manager_price)
-            .unwrap();
-        order
-            .add_meal_for_user(1, String::from("1"), String::from("Tortellini"), user_price)
-            .unwrap();
+        let bill_of_user = order.get_bill_of_user(asked_id);
 
         //Then
-        assert_eq!(expected_total, order.user_has_to_pay(asked_id));
+        assert_eq!(expected_bill, bill_of_user);
     }
 
     #[rstest]
@@ -714,7 +725,6 @@ mod tests {
 
         let mut expected_pay_overview = HashMap::new();
 
-        //When
         expected_pay_overview.insert(0, manager_price.clone());
         order
             .add_meal_for_user(0, String::from("0"), String::from("Gross"), manager_price)
@@ -724,7 +734,10 @@ mod tests {
             .add_meal_for_user(1, String::from("1"), String::from("Tortellini"), user_price)
             .unwrap();
 
+        //When
+        let pay_overview = order.generate_pay_overview();
+
         //Then
-        assert_eq!(expected_pay_overview, order.generate_pay_overview());
+        assert_eq!(expected_pay_overview, pay_overview);
     }
 }
